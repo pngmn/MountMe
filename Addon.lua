@@ -42,14 +42,18 @@ if select(2, UnitClass("player")) == "DRUID" then
 		[646] = 90267,  -- Flight Master's License / Deepholm
 		[571] = 54197,  -- Cold Weather Flying / Northrend
 		[870] = 115913, -- Wisdom of the Four Winds / Pandaria
+		[1116] = -1, -- Draenor
+		[1265] = -1, -- Tanaan Jungle Intro
 	}
 
 	local function CanFly() -- because IsFlyableArea is a fucking liar
-		if IsFlyableArea() and HasRidingSkill(true) then
+		if IsFlyableArea() then
 			local _, _, _, _, _, _, _, instanceMapID = GetInstanceInfo()
 			local reqSpell = flyingSpell[instanceMapID]
-			if not reqSpell or IsSpellKnown(reqSpell) then
-				return true
+			if reqSpell then
+				return reqSpell > 0 and IsSpellKnown(reqSpell)
+			else
+				return HasRidingSkill(true)
 			end
 		end
 	end
