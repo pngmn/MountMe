@@ -1,4 +1,5 @@
 ## Interface: 60000
+## Version: @project-version@
 
 ## Title: MountMe
 ## Notes: One button to mount, dismount, and use travel forms.
