@@ -1,0 +1,14 @@
+## Interface: 60000
+
+## Title: MountMe
+## Notes: One button to mount, dismount, and use travel forms.
+## Notes-deDE: Ein Button, um zu aufsitzen, absitzen und Reisegestalten verwenden.
+## Notes-esES: Un botón para montar, desmontar y usar las formas de viaje.
+## Notes-esMX: Un botón para montar, desmontar y usar las formas de viaje.
+
+## Author: Phanx
+## X-Email: addons@phanx.net
+## X-Copyright: Copyright (c) 2014 Phanx. All rights reserved.
+## X-Website: https://github.com/Phanx/MountMe
+
+Addon.lua
