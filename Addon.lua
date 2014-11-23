@@ -9,6 +9,9 @@ local MOD_TRAVEL_FORM = "ctrl"
 local MOD_DISMOUNT_FLYING = "shift"
 
 ------------------------------------------------------------------------
+-- TODO: cancel transformation buffs that block mounting?
+
+local PLAYER_CLASS = select(2, UnitClass("player"))
 
 local MOUNT_CONDITION = "[outdoors,nocombat,nomounted,novehicleui]"
 local SAFE_DISMOUNT = "/stopmacro [flying,nomod:%s]"
@@ -34,7 +37,7 @@ button:SetAttribute("type", "macro")
 
 ------------------------------------------------------------------------
 
-if select(2, UnitClass("player")) == "DRUID" then
+if PLAYER_CLASS == "DRUID" then
 
 	local flyingSpell = {
 		[0]   = 90267,  -- Flight Master's License / Eastern Kingdoms
@@ -81,7 +84,7 @@ if select(2, UnitClass("player")) == "DRUID" then
 
 ------------------------------------------------------------------------
 
-elseif select(2, UnitClass("player")) == "SHAMAN" then
+elseif PLAYER_CLASS == "SHAMAN" then
 
 	local GHOST_WOLF_ID = 2645
 	local GHOST_WOLF = GetSpellInfo(GHOST_WOLF_ID)
@@ -95,6 +98,17 @@ elseif select(2, UnitClass("player")) == "SHAMAN" then
 			return "/run C_MountJournal.Summon(0)"
 		elseif IsPlayerSpell(GHOST_WOLF_ID) then
 			return format("/cast [nomounted,noform] %s", GHOST_WOLF)
+		end
+	end
+
+------------------------------------------------------------------------
+
+elseif PLAYER_CLASS == "WARLOCK" then
+
+	function GetAction()
+		if not IsPlayerMoving() and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
+			-- get out of Metamorphosis
+			return "/cancelform [form]\n/run C_MountJournal.Summon(0)"
 		end
 	end
 
@@ -120,6 +134,7 @@ function button:Update()
 	local safetyCheck = not GetCVarBool("autoDismountFlying") and format(SAFE_DISMOUNT, MOD_DISMOUNT_FLYING)
 
 	if GetItemCount(37011) > 0 and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
+		-- Magic Broom
 		useMount = "/use " .. GetItemInfo(37011)
 	else
 		useMount = GetAction()
