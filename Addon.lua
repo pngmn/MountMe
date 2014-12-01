@@ -85,7 +85,7 @@ if PLAYER_CLASS == "DRUID" then
 			return "/run C_MountJournal.Summon(0)"
 		elseif IsPlayerSpell(TRAVEL_FORM_ID) and (IsOutdoors() or IsSubmerged()) then
 			return format("/cast [nomounted,noform] %s", TRAVEL_FORM)
-		elseif IsPlayerSpell(TRAVEL_FORM_ID) then
+		elseif IsPlayerSpell(CAT_FORM_ID) then
 			return format("/cast [nomounted,noform] %s", CAT_FORM)
 		end
 	end
@@ -138,7 +138,6 @@ function button:Update()
 	if InCombatLockdown() then return end
 
 	local useMount
-	local useForm = GetTravelForm and GetTravelForm()
 	local safetyCheck = not GetCVarBool("autoDismountFlying") and format(SAFE_DISMOUNT, MOD_DISMOUNT_FLYING)
 
 	if GetItemCount(37011) > 0 and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
