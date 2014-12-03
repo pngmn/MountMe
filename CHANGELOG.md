@@ -1,3 +1,7 @@
+### Version 6.0.3.3
+
+* Fixed druid Cat Form fallback when indoors or when Travel Form is unknown
+
 ### Version 6.0.3.2
 
 * Cancel warlock Metamorphosis when mounting
