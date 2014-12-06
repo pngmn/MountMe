@@ -11,7 +11,8 @@ local MOD_DISMOUNT_FLYING = "shift"
 ------------------------------------------------------------------------
 -- TODO: cancel transformation buffs that block mounting?
 
-local PLAYER_CLASS = select(2, UnitClass("player"))
+local _, ns = ...
+local _, PLAYER_CLASS = UnitClass("player")
 
 local MOUNT_CONDITION = "[outdoors,nocombat,nomounted,novehicleui]"
 local SAFE_DISMOUNT = "/stopmacro [flying,nomod:%s]"
@@ -39,36 +40,6 @@ button:SetAttribute("type", "macro")
 
 if PLAYER_CLASS == "DRUID" then
 
-	local flyingSpell = {
-		[0]   = 90267,  -- Flight Master's License / Eastern Kingdoms
-		[1]   = 90267,  -- Flight Master's License / Kalimdor
-		[646] = 90267,  -- Flight Master's License / Deepholm
-		[571] = 54197,  -- Cold Weather Flying / Northrend
-		[870] = 115913, -- Wisdom of the Four Winds / Pandaria
-		[1116] = -1, -- Draenor
-		[1265] = -1, -- Tanaan Jungle Intro
-		[1152] = -1, -- FW Horde Garrison Level 1
-		[1330] = -1, -- FW Horde Garrison Level 2
-		[1153] = -1, -- FW Horde Garrison Level 3
-		[1154] = -1, -- FW Horde Garrison Level 4
-		[1158] = -1, -- SMV Alliance Garrison Level 1
-		[1331] = -1, -- SMV Alliance Garrison Level 2
-		[1159] = -1, -- SMV Alliance Garrison Level 3
-		[1160] = -1, -- SMV Alliance Garrison Level 4
-	}
-
-	local function CanFly() -- because IsFlyableArea is a fucking liar
-		if IsFlyableArea() then
-			local _, _, _, _, _, _, _, instanceMapID = GetInstanceInfo()
-			local reqSpell = flyingSpell[instanceMapID]
-			if reqSpell then
-				return reqSpell > 0 and IsSpellKnown(reqSpell)
-			else
-				return HasRidingSkill(true)
-			end
-		end
-	end
-
 	local CAT_FORM_ID, TRAVEL_FORM_ID = 768, 783
 	local CAT_FORM, TRAVEL_FORM = GetSpellInfo(CAT_FORM_ID), GetSpellInfo(TRAVEL_FORM_ID)
 
@@ -79,7 +50,7 @@ if PLAYER_CLASS == "DRUID" then
 		-- TODO: handle Glyph of the Stag (separate Flight Form)
 		-- TODO: handle Glyph of Travel (TF = ground mount OOC)
 		local mountOK = SecureCmdOptionParse(MOUNT_CONDITION)
-		if mountOK and IsPlayerSpell(TRAVEL_FORM_ID) and CanFly() then
+		if mountOK and IsPlayerSpell(TRAVEL_FORM_ID) and ns.CanFly() then
 			return format("/cast %s", TRAVEL_FORM)
 		elseif mountOK and not IsPlayerMoving() and HasRidingSkill() then
 			return "/run C_MountJournal.Summon(0)"
