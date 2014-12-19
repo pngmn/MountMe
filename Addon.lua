@@ -39,16 +39,34 @@ button:SetAttribute("type", "macro")
 ------------------------------------------------------------------------
 
 if PLAYER_CLASS == "DRUID" then
-
 	local CAT_FORM_ID, TRAVEL_FORM_ID = 768, 783
 	local CAT_FORM, TRAVEL_FORM = GetSpellInfo(CAT_FORM_ID), GetSpellInfo(TRAVEL_FORM_ID)
 
-	MOUNT_CONDITION = format("[outdoors,nocombat,nomounted,noform,novehicleui,nomod:%s]", MOD_TRAVEL_FORM)
+	local BLOCKING_FORMS
+
+	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. "]"
 	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
 
-	function GetAction()
+	function GetAction(force)
 		-- TODO: handle Glyph of the Stag (separate Flight Form)
 		-- TODO: handle Glyph of Travel (TF = ground mount OOC)
+
+		if force or not BLOCKING_FORMS then
+			BLOCKING_FORMS = nil -- in case of force
+			for i = 1, GetNumShapeshiftForms() do
+				local icon = strlower(GetShapeshiftFormInfo(i))
+				if not strmatch(icon, "spell_nature_forceofnature") then -- Moonkin Form OK
+					if BLOCKING_FORMS then
+						BLOCKING_FORMS = BLOCKING_FORMS .. "/" .. i
+					else
+						BLOCKING_FORMS = i
+					end
+				end
+			end
+			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform:" .. BLOCKING_FORMS .. ",novehicleui,nomod:%s]" .. MOD_TRAVEL_FORM .. "]"
+			DISMOUNT = gsub(DISMOUNT, "%[form%]", "[form:" .. BLOCKING_FORMS .. "]")
+		end
+
 		local mountOK = SecureCmdOptionParse(MOUNT_CONDITION)
 		if mountOK and IsPlayerSpell(TRAVEL_FORM_ID) and ns.CanFly() then
 			return format("/cast %s", TRAVEL_FORM)
@@ -124,10 +142,13 @@ button:SetScript("PreClick", button.Update)
 
 ------------------------------------------------------------------------
 
+button:RegisterEvent("LEARNED_SPELL_IN_TAB")
 button:RegisterEvent("PLAYER_ENTERING_WORLD")
 button:RegisterEvent("PLAYER_REGEN_DISABLED")
 button:RegisterEvent("PLAYER_REGEN_ENABLED")
+button:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 button:RegisterEvent("UPDATE_BINDINGS")
+button:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
 
 button:SetScript("OnEvent", function(self, event)
 	if event == "UPDATE_BINDINGS" or event == "PLAYER_ENTERING_WORLD" then
@@ -140,6 +161,6 @@ button:SetScript("OnEvent", function(self, event)
 			SetOverrideBinding(self, false, b, "CLICK MountMeButton:LeftButton")
 		end
 	else
-		self:Update()
+		self:Update(event == "UPDATE_SHAPESHIFT_FORMS") -- force extra update for druids
 	end
 end)

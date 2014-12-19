@@ -1,3 +1,7 @@
+### Version 6.0.3.5
+
+* Don't cancel Moonkin Form
+
 ### Version 6.0.3.4
 
 * Added Ashran to the list of zones that aren't really flyable even though WoW says they are
