@@ -43,6 +43,7 @@ if PLAYER_CLASS == "DRUID" then
 	local CAT_FORM, TRAVEL_FORM = GetSpellInfo(CAT_FORM_ID), GetSpellInfo(TRAVEL_FORM_ID)
 
 	local BLOCKING_FORMS
+	local orig_DISMOUNT = DISMOUNT
 
 	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. "]"
 	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
@@ -52,30 +53,30 @@ if PLAYER_CLASS == "DRUID" then
 		-- TODO: handle Glyph of Travel (TF = ground mount OOC)
 
 		if force or not BLOCKING_FORMS then
-			BLOCKING_FORMS = nil -- in case of force
+			BLOCKING_FORMS = "" -- in case of force
 			for i = 1, GetNumShapeshiftForms() do
 				local icon = strlower(GetShapeshiftFormInfo(i))
 				if not strmatch(icon, "spell_nature_forceofnature") then -- Moonkin Form OK
-					if BLOCKING_FORMS then
-						BLOCKING_FORMS = BLOCKING_FORMS .. "/" .. i
+					if BLOCKING_FORMS == "" then
+						BLOCKING_FORMS = ":" .. i
 					else
-						BLOCKING_FORMS = i
+						BLOCKING_FORMS = BLOCKING_FORMS .. "/" .. i
 					end
 				end
 			end
-			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform:" .. BLOCKING_FORMS .. ",novehicleui,nomod:%s]" .. MOD_TRAVEL_FORM .. "]"
-			DISMOUNT = gsub(DISMOUNT, "%[form%]", "[form:" .. BLOCKING_FORMS .. "]")
+			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform" .. BLOCKING_FORMS .. ",novehicleui,nomod:%s]" .. MOD_TRAVEL_FORM .. "]"
+			DISMOUNT = orig_DISMOUNT .. "\n/cancelform [form" .. BLOCKING_FORMS .. "]"
 		end
 
 		local mountOK = SecureCmdOptionParse(MOUNT_CONDITION)
 		if mountOK and IsPlayerSpell(TRAVEL_FORM_ID) and ns.CanFly() then
-			return format("/cast %s", TRAVEL_FORM)
+			return "/cast " .. TRAVEL_FORM
 		elseif mountOK and not IsPlayerMoving() and HasRidingSkill() then
 			return "/run C_MountJournal.Summon(0)"
 		elseif IsPlayerSpell(TRAVEL_FORM_ID) and (IsOutdoors() or IsSubmerged()) then
-			return format("/cast [nomounted,noform] %s", TRAVEL_FORM)
+			return "/cast [nomounted,noform] " .. TRAVEL_FORM
 		elseif IsPlayerSpell(CAT_FORM_ID) then
-			return format("/cast [nomounted,noform] %s", CAT_FORM)
+			return "/cast [nomounted,noform" .. BLOCKING_FORMS .. "] " .. CAT_FORM
 		end
 	end
 
@@ -86,7 +87,7 @@ elseif PLAYER_CLASS == "SHAMAN" then
 	local GHOST_WOLF_ID = 2645
 	local GHOST_WOLF = GetSpellInfo(GHOST_WOLF_ID)
 
-	MOUNT_CONDITION = format("[outdoors,nocombat,nomounted,noform,novehicleui,nomod:%s]", MOD_TRAVEL_FORM)
+	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. "]"
 	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
 
 	function GetAction()
@@ -94,7 +95,7 @@ elseif PLAYER_CLASS == "SHAMAN" then
 		if not IsPlayerMoving() and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
 			return "/run C_MountJournal.Summon(0)"
 		elseif IsPlayerSpell(GHOST_WOLF_ID) then
-			return format("/cast [nomounted,noform] %s", GHOST_WOLF)
+			return "/cast [nomounted,noform] " .. GHOST_WOLF
 		end
 	end
 
