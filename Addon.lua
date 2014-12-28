@@ -64,7 +64,7 @@ if PLAYER_CLASS == "DRUID" then
 					end
 				end
 			end
-			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform" .. BLOCKING_FORMS .. ",novehicleui,nomod:%s]" .. MOD_TRAVEL_FORM .. "]"
+			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform" .. BLOCKING_FORMS .. ",novehicleui,nomod:" .. MOD_TRAVEL_FORM .. "]"
 			DISMOUNT = orig_DISMOUNT .. "\n/cancelform [form" .. BLOCKING_FORMS .. "]"
 		end
 
@@ -128,15 +128,23 @@ function button:Update()
 	if InCombatLockdown() then return end
 
 	local useMount
-	local safetyCheck = not GetCVarBool("autoDismountFlying") and format(SAFE_DISMOUNT, MOD_DISMOUNT_FLYING)
-
 	if GetItemCount(37011) > 0 and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
 		-- Magic Broom
 		useMount = "/use " .. GetItemInfo(37011)
-	else
-		useMount = GetAction()
+	elseif HasDraenorZoneAbility() then
+		local name, _, _, _, _, _, id = GetSpellInfo(GetSpellInfo(161691))
+		if id == 164222 or id == 165803 then
+			-- Frostwolf War Wolf || Telaari Talbuk
+			-- Can be summoned while moving and in combat
+			useMount = "/use [outdoors] " .. name
+		end
 	end
-	self:SetAttribute("macrotext", strtrim(strjoin("\n", useMount or "", safetyCheck or "", DISMOUNT)))
+
+	self:SetAttribute("macrotext", strtrim(strjoin("\n",
+		useMount or GetAction() or "",
+		GetCVarBool("autoDismountFlying") and "" or format(SAFE_DISMOUNT, MOD_DISMOUNT_FLYING),
+		DISMOUNT
+	)))
 end
 
 button:SetScript("PreClick", button.Update)
@@ -150,6 +158,7 @@ button:RegisterEvent("PLAYER_REGEN_ENABLED")
 button:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 button:RegisterEvent("UPDATE_BINDINGS")
 button:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
+button:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 
 button:SetScript("OnEvent", function(self, event)
 	if event == "UPDATE_BINDINGS" or event == "PLAYER_ENTERING_WORLD" then
