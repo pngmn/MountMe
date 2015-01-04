@@ -1,6 +1,7 @@
 ### Version 6.0.3.5
 
-* Don't cancel Moonkin Form
+* Added support for Nagrand garrison zone mounts
+* Don't cancel Moonkin Form when mounting
 
 ### Version 6.0.3.4
 
