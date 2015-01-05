@@ -42,7 +42,6 @@ local button = CreateFrame("Button", "MountMeButton", nil, "SecureActionButtonTe
 button:SetAttribute("type", "macro")
 
 ------------------------------------------------------------------------
-
 if PLAYER_CLASS == "DRUID" then
 
 	local CAT_FORM_ID, TRAVEL_FORM_ID = 768, 783
@@ -87,24 +86,6 @@ if PLAYER_CLASS == "DRUID" then
 	end
 
 ------------------------------------------------------------------------
-
-elseif PLAYER_CLASS == "PALADIN" then
-	-- TODO: test Speed of Light support
-
-	local SPEED_OF_LIGHT_ID = 85499
-	local SPEED_OF_LIGHT = GetSpellInfo(SPEED_OF_LIGHT_ID)
-
-	function GetAction()
-		local moving = IsPlayerMoving()
-		if (moving or UnitAffectingCombat("player")) and IsPlayerSpell(SPEED_OF_LIGHT) then
-			return "/cast [nomounted,novehicleui,mod:" .. MOD_TRAVEL_FORM .. "] " .. SPEED_OF_LIGHT
-		elseif not moving and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
-			return "/run C_MountJournal.Summon(0)"
-		end
-	end
-
-------------------------------------------------------------------------
-
 elseif PLAYER_CLASS == "SHAMAN" then
 
 	local GHOST_WOLF_ID = 2645
@@ -123,7 +104,6 @@ elseif PLAYER_CLASS == "SHAMAN" then
 	end
 
 ------------------------------------------------------------------------
-
 elseif PLAYER_CLASS == "WARLOCK" then
 
 	local BURNING_RUSH_ID = 111400
@@ -144,11 +124,23 @@ elseif PLAYER_CLASS == "WARLOCK" then
 	end
 
 ------------------------------------------------------------------------
-
 else
 
+	local movingActionID, movingAction
+	if PLAYER_CLASS == "MAGE" then
+		movingActionID = 108843 -- Blazing Speed
+	elseif PLAYER_CLASS == "PALADIN" then
+		movingActionID = 85599 -- Speed of Light
+	elseif PLAYER_CLASS == "MONK" then
+		movingActionID = 109132 -- Roll -- TODO: make sure it works when morphed into Chi Torpedo
+	end
+	movingAction = movingActionID and GetSpellInfo(movingActionID)
+
 	function GetAction()
-		if not IsPlayerMoving() and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
+		local moving = IsPlayerMoving()
+		if movingAction and (moving or UnitAffectingCombat("player")) and IsPlayerSpell(movingActionID) then
+			return "/cast [nomounted,novehicleui,mod:" .. MOD_TRAVEL_FORM .. "] " .. movingAction
+		elseif not moving and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
 			return "/run C_MountJournal.Summon(0)"
 		end
 	end
