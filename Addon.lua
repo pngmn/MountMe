@@ -1,7 +1,7 @@
 --[[--------------------------------------------------------------------
 	MountMe
 	One button to mount, dismount, and use travel forms.
-	Copyright (c) 2014 Phanx <addons@phanx.net>. All rights reserved.
+	Copyright (c) 2014-2015 Phanx <addons@phanx.net>. All rights reserved.
 	https://github.com/Phanx/MountMe
 ----------------------------------------------------------------------]]
 
@@ -25,6 +25,22 @@ local DISMOUNT = [[
 /leavevehicle [canexitvehicle]
 /dismount [mounted]
 ]]
+
+local castWhileMovingBuffs = {
+	[GetSpellInfo(172106) or ""] = true, -- Aspect of the Fox
+	[GetSpellInfo(108839) or ""] = PLAYER_CLASS == "MAGE"    or nil, -- Ice Floes
+	[GetSpellInfo(79206)  or ""] = PLAYER_CLASS == "SHAMAN"  or nil, -- Spiritwalker's Grace
+	[GetSpellInfo(137587) or ""] = PLAYER_CLASS == "WARLOCK" or nil, -- Kil'jaeden's Cunning
+}
+
+local function IsMoving()
+	for buff in next, castWhileMovingBuffs do
+		if UnitBuff("player", buff) then
+			return false
+		end
+	end
+	return IsPlayerMoving()
+end
 
 local function HasRidingSkill(flyingOnly)
 	local hasSkill = IsSpellKnown(90265) or IsSpellKnown(34091) or IsSpellKnown(34090)
@@ -76,7 +92,7 @@ if PLAYER_CLASS == "DRUID" then
 		local mountOK = SecureCmdOptionParse(MOUNT_CONDITION)
 		if mountOK and IsPlayerSpell(TRAVEL_FORM_ID) and ns.CanFly() then
 			return "/cast " .. TRAVEL_FORM
-		elseif mountOK and not IsPlayerMoving() and HasRidingSkill() then
+		elseif mountOK and not IsMoving() and HasRidingSkill() then
 			return "/run C_MountJournal.Summon(0)"
 		elseif IsPlayerSpell(TRAVEL_FORM_ID) and (IsOutdoors() or IsSubmerged()) then
 			return "/cast [nomounted,noform] " .. TRAVEL_FORM
@@ -96,7 +112,7 @@ elseif PLAYER_CLASS == "SHAMAN" then
 
 	function GetAction()
 		-- TODO: handle Glyph of Ghostly Speed (GW = ground mount OOC)
-		if not IsPlayerMoving() and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
+		if not IsMoving() and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
 			return "/run C_MountJournal.Summon(0)"
 		elseif IsPlayerSpell(GHOST_WOLF_ID) then
 			return "/cast [nomounted,noform] " .. GHOST_WOLF
@@ -104,44 +120,31 @@ elseif PLAYER_CLASS == "SHAMAN" then
 	end
 
 ------------------------------------------------------------------------
-elseif PLAYER_CLASS == "WARLOCK" then
+else
+	local movingActionID
+	=  PLAYER_CLASS == "DEATHKNIGHT" and 96268  -- Death's Advance
+	or PLAYER_CLASS == "HUNTER"      and 5118   -- Aspect of the Cheetah
+	or PLAYER_CLASS == "MAGE"        and 108843 -- Blazing Speed
+	or PLAYER_CLASS == "MONK"        and 109132 -- Roll -- TODO: make sure it works when morphed into Chi Torpedo
+	or PLAYER_CLASS == "PALADIN"     and 85599  -- Speed of Light
+	or PLAYER_CLASS == "ROGUE"       and 2983   -- Sprint
+	or PLAYER_CLASS == "WARLOCK"     and 111400 -- Burning Rush
 
-	local BURNING_RUSH_ID = 111400
-	local BURNING_RUSH = GetSpellInfo(BURNING_RUSH_ID)
+	local movingAction = movingActionID and GetSpellInfo(movingActionID)
 
 	function GetAction()
-		local moving = IsPlayerMoving()
-		if (moving or UnitAffectingCombat("player")) and IsPlayerSpell(BURNING_RUSH_ID) then
-			return "/cast [nomounted,novehicleui] " .. BURNING_RUSH
+		local moving = IsMoving()
+		if movingAction and IsPlayerSpell(movingActionID) and (moving or UnitAffectingCombat("player")) then
+			return "/cast [nomounted,novehicleui] " .. movingAction
 		elseif not moving then
-			local action = "/cancelaura " .. BURNING_RUSH
+			local action
 			if HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
-				-- get out of Metamorphosis
-				action = action .. "\n/cancelform [form]\n/run C_MountJournal.Summon(0)"
+				action = "/run C_MountJournal.Summon(0)"
+			end
+			if PLAYER_CLASS == "WARLOCK" then
+				action = "/cancelaura " .. movingAction .. (action and ("\n/cancelform [form]\n" .. action) or "")
 			end
 			return action
-		end
-	end
-
-------------------------------------------------------------------------
-else
-
-	local movingActionID, movingAction
-	if PLAYER_CLASS == "MAGE" then
-		movingActionID = 108843 -- Blazing Speed
-	elseif PLAYER_CLASS == "PALADIN" then
-		movingActionID = 85599 -- Speed of Light
-	elseif PLAYER_CLASS == "MONK" then
-		movingActionID = 109132 -- Roll -- TODO: make sure it works when morphed into Chi Torpedo
-	end
-	movingAction = movingActionID and GetSpellInfo(movingActionID)
-
-	function GetAction()
-		local moving = IsPlayerMoving()
-		if movingAction and (moving or UnitAffectingCombat("player")) and IsPlayerSpell(movingActionID) then
-			return "/cast [nomounted,novehicleui,mod:" .. MOD_TRAVEL_FORM .. "] " .. movingAction
-		elseif not moving and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
-			return "/run C_MountJournal.Summon(0)"
 		end
 	end
 

@@ -1,3 +1,8 @@
+### Version 6.0.3.6
+
+* Added support for mounting while moving while Aspect of the Fox, Ice Floes, Kil'jaeden's Cunning, or Spiritwalker's Grace is active
+* Added support for casting Aspect of the Cheetah, Blazing Speed, Chi Torpedo, Death's Advance, Roll, Speed of Light, or Sprint while moving or in combat
+
 ### Version 6.0.3.5
 
 * Added support for Nagrand garrison zone mounts
