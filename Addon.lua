@@ -9,6 +9,16 @@ local MOD_TRAVEL_FORM = "ctrl"
 local MOD_DISMOUNT_FLYING = "shift"
 
 ------------------------------------------------------------------------
+
+local MOUNT_CONDITION = "[outdoors,nocombat,nomounted,novehicleui]"
+local GARRISON_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:"..MOD_TRAVEL_FORM.."]"
+local SAFE_DISMOUNT = "/stopmacro [flying,nomod:"..MOD_DISMOUNT_FLYING.."]"
+local DISMOUNT = [[
+/leavevehicle [canexitvehicle]
+/dismount [mounted]
+]]
+
+------------------------------------------------------------------------
 -- TODO: cancel transformation buffs that block mounting?
 
 local _, ns = ...
@@ -19,12 +29,7 @@ local GetItemCount, GetSpellInfo, HasDraenorZoneAbility, IsOutdoors, IsPlayerMov
 
 ------------------------------------------------------------------------
 
-local MOUNT_CONDITION = "[outdoors,nocombat,nomounted,novehicleui]"
-local SAFE_DISMOUNT = "/stopmacro [flying,nomod:%s]"
-local DISMOUNT = [[
-/leavevehicle [canexitvehicle]
-/dismount [mounted]
-]]
+local GARRISON_ABILITY = GetSpellInfo(161691)
 
 local castWhileMovingBuffs = {
 	[GetSpellInfo(172106) or ""] = true, -- Aspect of the Fox
@@ -159,8 +164,8 @@ function button:Update()
 	if GetItemCount(37011) > 0 and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
 		-- Magic Broom
 		useMount = "/use " .. GetItemInfo(37011)
-	elseif HasDraenorZoneAbility() then
-		local name, _, _, _, _, _, id = GetSpellInfo(GetSpellInfo(161691))
+	elseif HasDraenorZoneAbility() and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) then
+		local name, _, _, _, _, _, id = GetSpellInfo(GARRISON_ABILITY)
 		if id == 164222 or id == 165803 then
 			-- Frostwolf War Wolf || Telaari Talbuk
 			-- Can be summoned while moving and in combat
@@ -170,7 +175,7 @@ function button:Update()
 
 	self:SetAttribute("macrotext", strtrim(strjoin("\n",
 		useMount or GetAction() or "",
-		GetCVarBool("autoDismountFlying") and "" or format(SAFE_DISMOUNT, MOD_DISMOUNT_FLYING),
+		GetCVarBool("autoDismountFlying") and "" or SAFE_DISMOUNT,
 		DISMOUNT
 	)))
 end
