@@ -161,20 +161,24 @@ function button:Update()
 	if InCombatLockdown() then return end
 
 	local useMount
-	if GetItemCount(37011) > 0 and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
+
+	local name, _, _, _, _, _, id = GetSpellInfo(GARRISON_ABILITY)
+	if (id == 164222 or id == 165803) and HasDraenorZoneAbility() and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) then
+		-- Frostwolf War Wolf || Telaari Talbuk
+		-- Can be summoned while moving and in combat
+		useMount = "/use [outdoors,nomod:" .. MOD_TRAVEL_FORM .."] " .. name
+	elseif GetItemCount(37011) > 0 and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
 		-- Magic Broom
-		useMount = "/use " .. GetItemInfo(37011)
-	elseif HasDraenorZoneAbility() and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) then
-		local name, _, _, _, _, _, id = GetSpellInfo(GARRISON_ABILITY)
-		if id == 164222 or id == 165803 then
-			-- Frostwolf War Wolf || Telaari Talbuk
-			-- Can be summoned while moving and in combat
-			useMount = "/use [outdoors] " .. name
-		end
+		-- Instant but not usable in combat
+		useMount = "/use [nomod:" .. MOD_TRAVEL_FORM .."] " .. GetItemInfo(37011)
+	else
+		useMount = GetAction()
 	end
 
+	-- TODO: good way to ignore garrison stables training mounts
+
 	self:SetAttribute("macrotext", strtrim(strjoin("\n",
-		useMount or GetAction() or "",
+		useMount or "",
 		GetCVarBool("autoDismountFlying") and "" or SAFE_DISMOUNT,
 		DISMOUNT
 	)))
