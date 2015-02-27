@@ -1,3 +1,7 @@
+### Version 6.1.0.7
+
+* Updated for WoW 6.1
+
 ### Version 6.0.3.6
 
 * Added support for mounting while moving while Aspect of the Fox, Ice Floes, Kil'jaeden's Cunning, or Spiritwalker's Grace is active
