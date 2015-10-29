@@ -164,15 +164,17 @@ function button:Update()
 
 	local useMount = GetAction()
 
-	local name, _, _, _, _, _, id = GetSpellInfo(GARRISON_ABILITY)
-	if (id == 164222 or id == 165803) and HasDraenorZoneAbility() and not IsMoving() and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) then
-		-- Frostwolf War Wolf || Telaari Talbuk
-		-- Can be summoned in combat
-		useMount = gsub(useMount, ACTION_MOUNT_PATTERN, "/use [outdoors,nomod:" .. MOD_TRAVEL_FORM .."] " .. name, 1)
-	elseif GetItemCount(37011) > 0 and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
+	if GetItemCount(37011) > 0 and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
 		-- Magic Broom
 		-- Instant but not usable in combat
 		useMount = "/use [nomod:" .. MOD_TRAVEL_FORM .."] " .. GetItemInfo(37011) .. "\n" .. useMount
+	else
+		local name, _, _, _, _, _, id = GetSpellInfo(GARRISON_ABILITY)
+		if (id == 164222 or id == 165803) and HasDraenorZoneAbility() and not IsMoving() and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) then
+			-- Frostwolf War Wolf || Telaari Talbuk
+			-- Can be summoned in combat
+			useMount = gsub(useMount, ACTION_MOUNT_PATTERN, "/use [outdoors,nomod:" .. MOD_TRAVEL_FORM .."] " .. name, 1)
+		end
 	end
 
 	-- TODO: good way to ignore garrison stables training mounts

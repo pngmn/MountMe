@@ -1,3 +1,8 @@
+### Version 6.2.2.8
+
+* Updated for WoW 6.2 and Draenor Pathfinder
+* Fixed support for Hallow's End Magic Broom
+
 ### Version 6.1.0.7
 
 * Updated for WoW 6.1
