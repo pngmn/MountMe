@@ -30,6 +30,8 @@ local GetItemCount, GetSpellInfo, HasDraenorZoneAbility, IsOutdoors, IsPlayerMov
 ------------------------------------------------------------------------
 
 local GARRISON_ABILITY = GetSpellInfo(161691)
+local ACTION_MOUNT = "/run C_MountJournal.Summon(0)"
+local ACTION_MOUNT_PATTERN = gsub(ACTION_MOUNT, "[%(%)]", "%%%1")
 
 local castWhileMovingBuffs = {
 	[GetSpellInfo(172106) or ""] = true, -- Aspect of the Fox
@@ -98,7 +100,7 @@ if PLAYER_CLASS == "DRUID" then
 		if mountOK and IsPlayerSpell(TRAVEL_FORM_ID) and ns.CanFly() then
 			return "/cast " .. TRAVEL_FORM
 		elseif mountOK and not IsMoving() and HasRidingSkill() then
-			return "/run C_MountJournal.Summon(0)"
+			return ACTION_MOUNT
 		elseif IsPlayerSpell(TRAVEL_FORM_ID) and (IsOutdoors() or IsSubmerged()) then
 			return "/cast [nomounted,noform] " .. TRAVEL_FORM
 		elseif IsPlayerSpell(CAT_FORM_ID) then
@@ -118,7 +120,7 @@ elseif PLAYER_CLASS == "SHAMAN" then
 	function GetAction()
 		-- TODO: handle Glyph of Ghostly Speed (GW = ground mount OOC)
 		if not IsMoving() and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
-			return "/run C_MountJournal.Summon(0)"
+			return ACTION_MOUNT
 		elseif IsPlayerSpell(GHOST_WOLF_ID) then
 			return "/cast [nomounted,noform] " .. GHOST_WOLF
 		end
@@ -144,7 +146,7 @@ else
 		elseif not moving then
 			local action
 			if HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
-				action = "/run C_MountJournal.Summon(0)"
+				action = ACTION_MOUNT
 			end
 			if PLAYER_CLASS == "WARLOCK" then
 				action = "/cancelaura " .. movingAction .. (action and ("\n/cancelform [form]\n" .. action) or "")
@@ -160,19 +162,17 @@ end
 function button:Update()
 	if InCombatLockdown() then return end
 
-	local useMount
+	local useMount = GetAction()
 
 	local name, _, _, _, _, _, id = GetSpellInfo(GARRISON_ABILITY)
-	if (id == 164222 or id == 165803) and HasDraenorZoneAbility() and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) then
+	if (id == 164222 or id == 165803) and HasDraenorZoneAbility() and not IsMoving() and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) then
 		-- Frostwolf War Wolf || Telaari Talbuk
-		-- Can be summoned while moving and in combat
-		useMount = "/use [outdoors,nomod:" .. MOD_TRAVEL_FORM .."] " .. name
+		-- Can be summoned in combat
+		useMount = gsub(useMount, ACTION_MOUNT_PATTERN, "/use [outdoors,nomod:" .. MOD_TRAVEL_FORM .."] " .. name, 1)
 	elseif GetItemCount(37011) > 0 and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
 		-- Magic Broom
 		-- Instant but not usable in combat
-		useMount = "/use [nomod:" .. MOD_TRAVEL_FORM .."] " .. GetItemInfo(37011)
-	else
-		useMount = GetAction()
+		useMount = "/use [nomod:" .. MOD_TRAVEL_FORM .."] " .. GetItemInfo(37011) .. "\n" .. useMount
 	end
 
 	-- TODO: good way to ignore garrison stables training mounts
