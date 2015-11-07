@@ -1,3 +1,7 @@
+### Version 6.2.2.9
+
+* Fixed: Nagrand garrison mounts will no longer take priority over normal mounts with Draenor Pathfinder
+
 ### Version 6.2.2.8
 
 * Updated for WoW 6.2 and Draenor Pathfinder
