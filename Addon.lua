@@ -1,7 +1,7 @@
 --[[--------------------------------------------------------------------
 	MountMe
 	One button to mount, dismount, and use travel forms.
-	Copyright (c) 2014-2015 Phanx <addons@phanx.net>. All rights reserved.
+	Copyright (c) 2014-2016 Phanx <addons@phanx.net>. All rights reserved.
 	https://github.com/Phanx/MountMe
 ----------------------------------------------------------------------]]
 
@@ -30,7 +30,7 @@ local GetItemCount, GetSpellInfo, HasDraenorZoneAbility, IsOutdoors, IsPlayerMov
 ------------------------------------------------------------------------
 
 local GARRISON_ABILITY = GetSpellInfo(161691)
-local ACTION_MOUNT = "/run C_MountJournal.Summon(0)"
+local ACTION_MOUNT = "/run C_MountJournal.SummonByID(0)"
 local ACTION_MOUNT_PATTERN = gsub(ACTION_MOUNT, "[%(%)]", "%%%1")
 
 local castWhileMovingBuffs = {
@@ -57,6 +57,15 @@ local function HasRidingSkill(flyingOnly)
 	return hasSkill or IsSpellKnown(33391) or IsSpellKnown(33388)
 end
 
+local function HasGlyph(id)
+	for i = 1, NUM_GLYPH_SLOTS do
+		local unlocked, glyphType, tooltipIndex, glyphSpellID, icon, glyphID = GetGlyphSocketInfo(i)
+		if id == glyphID then
+			return true
+		end
+	end
+end
+
 local GetAction
 
 ------------------------------------------------------------------------
@@ -67,8 +76,9 @@ button:SetAttribute("type", "macro")
 ------------------------------------------------------------------------
 if PLAYER_CLASS == "DRUID" then
 
-	local CAT_FORM_ID, TRAVEL_FORM_ID = 768, 783
-	local CAT_FORM, TRAVEL_FORM = GetSpellInfo(CAT_FORM_ID), GetSpellInfo(TRAVEL_FORM_ID)
+	local CAT_FORM_ID, TRAVEL_FORM_ID, FLIGHT_FORM_ID = 768, 783, 165962
+	local CAT_FORM, TRAVEL_FORM, FLIGHT_FORM = GetSpellInfo(CAT_FORM_ID), GetSpellInfo(TRAVEL_FORM_ID), GetSpellInfo(FLIGHT_FORM_ID)
+	local STAG_GLYPH, TRAVEL_GLYPH = 164, 1127
 
 	local BLOCKING_FORMS
 	local orig_DISMOUNT = DISMOUNT
@@ -77,8 +87,9 @@ if PLAYER_CLASS == "DRUID" then
 	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
 
 	function GetAction(force)
-		-- TODO: handle Glyph of the Stag (separate Flight Form)
 		-- TODO: handle Glyph of Travel (TF = ground mount OOC)
+		-- ^ Should already work -- if the player is moving, they'll use
+		--   the travel form, otherwise they'll use a regular mount.
 
 		if force or not BLOCKING_FORMS then
 			BLOCKING_FORMS = "" -- in case of force
@@ -96,8 +107,10 @@ if PLAYER_CLASS == "DRUID" then
 			DISMOUNT = orig_DISMOUNT .. "\n/cancelform [form" .. BLOCKING_FORMS .. "]"
 		end
 
-		local mountOK = SecureCmdOptionParse(MOUNT_CONDITION)
-		if mountOK and IsPlayerSpell(TRAVEL_FORM_ID) and ns.CanFly() then
+		local mountOK, flightOK = SecureCmdOptionParse(MOUNT_CONDITION), ns.CanFly()
+		if mountOK and flightOK and IsPlayerSpell(FLIGHT_FORM_ID) then
+			return "/cast " .. FLIGHT_FORM
+		elseif mountOK and flightOK and IsPlayerSpell(TRAVEL_FORM_ID) then
 			return "/cast " .. TRAVEL_FORM
 		elseif mountOK and not IsMoving() and HasRidingSkill() then
 			return ACTION_MOUNT
