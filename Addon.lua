@@ -55,11 +55,11 @@ local function IsMoving()
 end
 
 local function HasRidingSkill(flyingOnly)
-	local hasSkill = IsSpellKnown(90265) or IsSpellKnown(34091) or IsSpellKnown(34090)
+	local hasSkill = IsSpellKnown(90265) and 310 or IsSpellKnown(34091) and 280 or IsSpellKnown(34090) and 150
 	if flyingOnly then
 		return hasSkill
 	end
-	return hasSkill or IsSpellKnown(33391) or IsSpellKnown(33388)
+	return hasSkill or IsSpellKnown(33391) and 100 or IsSpellKnown(33388) and 60
 end
 
 local function HasGlyph(id)
@@ -181,9 +181,10 @@ do
 	local SUMMON = "/run C_MountJournal.SummonByID(%d)"
 	local SEA_LEGS = GetSpellInfo(73701)
 
-	local SEA_TURTLE = 0
+	local SEA_TURTLE = 312
 	local VASHJIR_SEAHORSE = 373
 	local SUBDUED_SEAHORSE = 420
+	local CHAFFEUR = UnitFactionGroup("player") == "Horde" and 679 or 678
 
 	local AQBUGS = {
 		117, -- Blue Qiraji Battle Tank
@@ -208,8 +209,18 @@ do
 			return "/use " .. name
 		end
 
-		if not HasRidingSkill() or not SecureCmdOptionParse(MOUNT_CONDITION..",nomod:"..MOD_TRAVEL_FORM) then
+		if not not SecureCmdOptionParse(MOUNT_CONDITION..",nomod:"..MOD_TRAVEL_FORM) then
 			return
+		end
+
+		-- Use Chaffeured Chopper if no riding skill
+		if not HasRidingSkill() then
+			local _, _, _, _, chaffeur = GetMountInfoByID(CHAFFEUR)
+			if chaffeur then
+				return format(SUMMON, CHAFFEUR)
+			else
+				return
+			end
 		end
 
 		-- Use underwater mounts while swimming
