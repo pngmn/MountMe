@@ -3,6 +3,12 @@
 	One button to mount, dismount, and use travel forms.
 	Copyright (c) 2014-2016 Phanx <addons@phanx.net>. All rights reserved.
 	https://github.com/Phanx/MountMe
+------------------------------------------------------------------------
+	TODO:
+	- Cancel transformation buffs that block mounting?
+	- Handle shaman Glyph of Ghostly Speed (GW = ground mount OOC)
+	- Verify that monk Roll works works when morphed into Chi Torpedo talent
+	- Ignore garrison stables training mounts
 ----------------------------------------------------------------------]]
 
 local MOD_TRAVEL_FORM = "ctrl"
@@ -19,7 +25,6 @@ local DISMOUNT = [[
 ]]
 
 ------------------------------------------------------------------------
--- TODO: cancel transformation buffs that block mounting?
 
 local _, ns = ...
 local _, PLAYER_CLASS = UnitClass("player")
@@ -90,7 +95,6 @@ if PLAYER_CLASS == "DRUID" then
 		-- TODO: handle Glyph of Travel (TF = ground mount OOC)
 		-- ^ Should already work -- if the player is moving, they'll use
 		--   the travel form, otherwise they'll use a regular mount.
-
 		if force or not BLOCKING_FORMS then
 			BLOCKING_FORMS = "" -- in case of force
 			for i = 1, GetNumShapeshiftForms() do
@@ -131,7 +135,6 @@ elseif PLAYER_CLASS == "SHAMAN" then
 	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
 
 	function GetAction()
-		-- TODO: handle Glyph of Ghostly Speed (GW = ground mount OOC)
 		if not IsMoving() and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
 			return ACTION_MOUNT
 		elseif IsPlayerSpell(GHOST_WOLF_ID) then
@@ -145,7 +148,7 @@ else
 	=  PLAYER_CLASS == "DEATHKNIGHT" and 96268  -- Death's Advance
 	or PLAYER_CLASS == "HUNTER"      and 5118   -- Aspect of the Cheetah
 	or PLAYER_CLASS == "MAGE"        and 108843 -- Blazing Speed
-	or PLAYER_CLASS == "MONK"        and 109132 -- Roll -- TODO: make sure it works when morphed into Chi Torpedo
+	or PLAYER_CLASS == "MONK"        and 109132 -- Roll
 	or PLAYER_CLASS == "PALADIN"     and 85599  -- Speed of Light
 	or PLAYER_CLASS == "ROGUE"       and 2983   -- Sprint
 	or PLAYER_CLASS == "WARLOCK"     and 111400 -- Burning Rush
@@ -172,27 +175,93 @@ end
 
 ------------------------------------------------------------------------
 
+local GetMountAction
+do
+	local GetMountInfoByID = C_MountJournal.GetMountInfoByID
+	local SUMMON = "/run C_MountJournal.SummonByID(%d)"
+	local SEA_LEGS = GetSpellInfo(73701)
+
+	local SEA_TURTLE = 0
+	local VASHJIR_SEAHORSE = 373
+	local SUBDUED_SEAHORSE = 420
+
+	local AQBUGS = {
+		117, -- Blue Qiraji Battle Tank
+		120, -- Green Qiraji Battle Tank
+		118, -- Red Qiraji Battle Tank
+		119, -- Yellow Qiraji Battle Tank
+	}
+
+	local hasBugs = {}
+
+	function GetMountAction()
+		-- Magic Broom
+		-- Instant but not usable in combat
+		if IsMoving() then
+			return GetItemCount(37011) > 0 and "/use " .. GetItemInfo(37011)
+		end
+
+		-- Nagrand garrison mounts: Frostwolf War Wolf, Telaari Talbuk
+		-- Can be summoned in combat
+		local name, _, _, _, _, _, id = GetSpellInfo(GARRISON_ABILITY)
+		if (id == 164222 or id == 165803) and HasDraenorZoneAbility() and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) and (UnitAffectingCombat("player") or not ns.CanFly()) then
+			return "/use " .. name
+		end
+
+		if not HasRidingSkill() or not SecureCmdOptionParse(MOUNT_CONDITION..",nomod:"..MOD_TRAVEL_FORM) then
+			return
+		end
+
+		-- Use underwater mounts while swimming
+		if IsSubmerged() then
+			-- Vashj'ir Seahorse (550% swim speed in Vashj'ir)
+			local _, _, _, _, seahorse = GetMountInfoByID(VASHJIR_SEAHORSE)
+			if seahorse then return format(SUMMON, VASHJIR_SEAHORSE) end
+
+			-- Subdued Seahorse (400% swim speed in Vashj'ir, 160% swim speed elsewhere)
+			_, _, _, _, seahorse = GetMountInfoByID(SUBDUED_SEAHORSE)
+			if seahorse and UnitBuff("player", SEA_LEGS) then return format(SUMMON, SUBDUED_SEAHORSE) end
+
+			-- Sea Turtle (160% swim speed)
+			local _, _, _, _, turtle = GetMountInfoByID(SEA_TURTLE)
+			if turtle and seahorse then
+				return format(SUMMON, math.random(1, 2) == 1 and SEA_TURTLE or SUBDUED_SEAHORSE)
+			elseif turtle then
+				return format(SUMMON, SEA_TURTLE)
+			end
+		end
+
+		-- Use Qiraji Battle Tanks while in the Temple of Ahn'qiraj
+		-- If any are marked as favorites, ignore ones that aren't
+		local _, _, _, _, _, _, _, instanceMapID = GetInstanceInfo()
+		if instanceMapID == 531 then
+			local numBugs, onlyFavorites = 0
+			for i = 1, #AQBUGS do
+				local bug = AQBUGS[i]
+				local name, _, _, _, usable, _, favorite = GetMountInfoByID(bug)
+				if usable and not (onlyFavorites and not favorite) then
+					if favorite and not onlyFavorites then
+						numBugs = 0
+						onlyFavorites = true
+					end
+					numBugs = numBugs + 1
+					hasBugs[numBugs] = bug
+				end
+			end
+			if numBugs > 0 then
+				return format(SUMMON, hasBugs[math.random(numBugs)])
+			end
+		end
+	end
+end
+
+------------------------------------------------------------------------
+
 function button:Update()
 	if InCombatLockdown() then return end
 
-	local useMount
-	if GetItemCount(37011) > 0 and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION..",nomod:"..MOD_TRAVEL_FORM) then
-		-- Magic Broom
-		-- Instant but not usable in combat
-		useMount = "/use " .. GetItemInfo(37011)
-	else
-		local name, _, _, _, _, _, id = GetSpellInfo(GARRISON_ABILITY)
-		if (id == 164222 or id == 165803) and HasDraenorZoneAbility() and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) and not IsMoving() and (UnitAffectingCombat("player") or not ns.CanFly()) then
-			-- Frostwolf War Wolf || Telaari Talbuk
-			-- Can be summoned in combat
-			useMount = "/use " .. name
-		end
-	end
-
-	-- TODO: good way to ignore garrison stables training mounts
-
 	self:SetAttribute("macrotext", strtrim(strjoin("\n",
-		useMount or GetAction() or "",
+		GetMountAction() or GetAction() or "",
 		GetCVarBool("autoDismountFlying") and "" or SAFE_DISMOUNT,
 		DISMOUNT
 	)))

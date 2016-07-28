@@ -1,6 +1,7 @@
 ### Version 7.0.3.0
 
 * Updated for WoW 7.0 (Legion)
+* Fixed support for AQ40 and Vashj'ir special mounts
 
 ### Version 6.2.2.9
 
@@ -41,3 +42,4 @@
 ### Version 6.0.3.1
 
 * First public release
+
