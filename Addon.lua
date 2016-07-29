@@ -35,7 +35,7 @@ local GetItemCount, GetSpellInfo, HasDraenorZoneAbility, IsOutdoors, IsPlayerMov
 ------------------------------------------------------------------------
 
 local GARRISON_ABILITY = GetSpellInfo(161691)
-local ACTION_MOUNT = "/run C_MountJournal.SummonByID(0)"
+local ACTION_MOUNT = "/click MountJournalSummonRandomFavoriteButton" -- "/run C_MountJournal.SummonByID(0)"
 local ACTION_MOUNT_PATTERN = gsub(ACTION_MOUNT, "[%(%)]", "%%%1")
 
 local castWhileMovingBuffs = {
@@ -282,17 +282,25 @@ button:SetScript("PreClick", button.Update)
 
 ------------------------------------------------------------------------
 
-button:RegisterEvent("LEARNED_SPELL_IN_TAB")
+button:RegisterEvent("PLAYER_LOGIN")
+
 button:RegisterEvent("PLAYER_ENTERING_WORLD")
+button:RegisterEvent("UPDATE_BINDINGS")
+
+button:RegisterEvent("LEARNED_SPELL_IN_TAB")
 button:RegisterEvent("PLAYER_REGEN_DISABLED")
 button:RegisterEvent("PLAYER_REGEN_ENABLED")
 button:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-button:RegisterEvent("UPDATE_BINDINGS")
 button:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
-button:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+button:RegisterEvent("ZONE_CHANGED_NEW_AREA") -- zone changed
+button:RegisterEvent("ZONE_CHANGED") -- indoor/outdoor transition
 
 button:SetScript("OnEvent", function(self, event)
-	if event == "UPDATE_BINDINGS" or event == "PLAYER_ENTERING_WORLD" then
+	if event == "PLAYER_LOGIN" then
+		if not MountJournalSummonRandomFavoriteButton then
+			CollectionsJournal_LoadUI()
+		end
+	elseif event == "UPDATE_BINDINGS" or event == "PLAYER_ENTERING_WORLD" then
 		ClearOverrideBindings(self)
 		local a, b = GetBindingKey("DISMOUNT")
 		if a then
