@@ -213,7 +213,7 @@ do
 			end
 		end
 
-		if not not SecureCmdOptionParse(MOUNT_CONDITION .. ",nomod:" .. MOD_TRAVEL_FORM) then
+		if not SecureCmdOptionParse(MOUNT_CONDITION:sub(1, -2) .. ",nomod:" .. MOD_TRAVEL_FORM .. "]") then
 			return
 		end
 
@@ -229,15 +229,15 @@ do
 
 		-- Use underwater mounts while swimming
 		if IsSubmerged() then
-			-- Vashj'ir Seahorse (550% swim speed in Vashj'ir)
+			-- Vashj'ir Seahorse (+450% swim speed in Vashj'ir)
 			local seahorseName, _, _, _, seahorseUsable = GetMountInfoByID(VASHJIR_SEAHORSE)
 			if seahorseUsable then return "/cast " .. seahorseName end
 
-			-- Subdued Seahorse (400% swim speed in Vashj'ir, 160% swim speed elsewhere)
+			-- Subdued Seahorse (+300% swim speed in Vashj'ir, +60% swim speed elsewhere)
 			seahorseName, _, _, _, seahorseUsable = GetMountInfoByID(SUBDUED_SEAHORSE)
 			if seahorseUsable and UnitBuff("player", SEA_LEGS) then return "/cast " .. seahorseName end
 
-			-- Sea Turtle (160% swim speed)
+			-- Sea Turtle (+60% swim speed)
 			local turtleName, _, _, _, turtleUsable = GetMountInfoByID(SEA_TURTLE)
 			if turtleUsable and seahorseUsable then
 				return "/cast " .. (math.random(1, 2) == 1 and turtleName or seahorseName)
