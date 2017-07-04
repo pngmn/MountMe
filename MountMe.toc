@@ -1,4 +1,4 @@
-## Interface: 70000
+## Interface: 70200
 ## Version: @project-version@
 
 ## Title: MountMe
@@ -7,9 +7,9 @@
 ## Notes-esES: Un botón para montar, desmontar y usar las formas de viaje.
 ## Notes-esMX: Un botón para montar, desmontar y usar las formas de viaje.
 
-## Author: Phanx
-## X-Email: addons@phanx.net
-## X-Copyright: Copyright (c) 2014-2016 Phanx. All rights reserved.
+## Author: Phanx, Akkorian
+## X-Email: armordecai@protonmail.com
+## X-Copyright: Copyright (c) 2014-2017 Phanx. All rights reserved.
 ## X-Website: https://github.com/Phanx/MountMe
 ## X-Curse-Project-ID: mountme
 ## X-WoWI-ID: 23309
