@@ -21,18 +21,32 @@ local flyingSpell = {
 	[1265] = -1, -- Tanaan Jungle Intro
 }
 
-local GetInstanceInfo, IsFlyableArea, IsSpellKnown = GetInstanceInfo, IsFlyableArea, IsSpellKnown
-local IsOnGarrisonMap, IsOnShipyardMap = C_Garrison.IsOnGarrisonMap, C_Garrison.IsOnShipyardMap
+local noFlySubzones = {
+	-- IsFlyableArea() incorrectly returns true in these subzones
+	["Nespirah"] = true,
+	["Неспира"] = true,
+	["네스피라"] = true,
+	["奈瑟匹拉"] = true,
+	["奈斯畢拉"] = true,
+}
+
+local GetInstanceInfo = GetInstanceInfo
+local GetSubZoneText = GetSubZoneText
+local IsFlyableArea = IsFlyableArea
+local IsSpellKnown = IsSpellKnown
+local IsOnGarrisonMap = C_Garrison.IsOnGarrisonMap
+local IsOnShipyardMap = C_Garrison.IsOnShipyardMap
 
 function ns.CanFly()
-	if IsFlyableArea() then
-		local _, _, _, _, _, _, _, instanceMapID = GetInstanceInfo()
-		local reqSpell = flyingSpell[instanceMapID]
-		if reqSpell then
-			return reqSpell > 0 and IsSpellKnown(reqSpell)
-		elseif not IsOnGarrisonMap() and not IsOnShipyardMap() then
-			return IsSpellKnown(34090) or IsSpellKnown(34091) or IsSpellKnown(90265)
-		end
+	if not IsFlyableArea() or IsOnGarrisonMap() or IsOnShipyardMap() or noFlySubzones[GetSubZoneText() or ""] then
+		return false
+	end
+
+	local _, _, _, _, _, _, _, instanceMapID = GetInstanceInfo()
+	local reqSpell = flyingSpell[instanceMapID]
+	if reqSpell then
+		return reqSpell > 0 and IsSpellKnown(reqSpell)
+	else
+		return IsSpellKnown(34090) or IsSpellKnown(34091) or IsSpellKnown(90265)
 	end
 end
-
