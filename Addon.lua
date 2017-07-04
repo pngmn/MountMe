@@ -106,7 +106,7 @@ if PLAYER_CLASS == "DRUID" then
 
 		local mountOK, flightOK = SecureCmdOptionParse(MOUNT_CONDITION), ns.CanFly()
 		if mountOK and flightOK and IsPlayerSpell(SpellID["Travel Form"]) then
-			return "/cast " .. TRAVEL_FORM
+			return "/cast " .. SpellName["Travel Form"]
 		elseif mountOK and not IsPlayerMoving() and HasRidingSkill() then
 			return ACTION_MOUNT
 		elseif IsPlayerSpell(SpellID["Travel Form"]) and (IsOutdoors() or IsSubmerged()) then
