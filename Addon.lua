@@ -14,26 +14,23 @@ local MOD_DISMOUNT_FLYING = "shift"
 
 ------------------------------------------------------------------------
 
-local MOUNT_CONDITION = "[outdoors,nocombat,nomounted,novehicleui]"
-local GARRISON_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:"..MOD_TRAVEL_FORM.."]"
-local SAFE_DISMOUNT = "/stopmacro [flying,nomod:"..MOD_DISMOUNT_FLYING.."]"
+local _, ns = ...
+local _, PLAYER_CLASS = UnitClass("player")
+
+local GetItemCount, GetSpellInfo, HasDraenorZoneAbility, IsOutdoors, IsPlayerMoving
+    = GetItemCount, GetSpellInfo, HasDraenorZoneAbility, IsOutdoors, IsPlayerMoving
+
+local IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
+    = IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
+
+local MOUNT_CONDITION = "[nocombat,outdoors,nomounted,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. "]"
+local GARRISON_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. "]"
+
+local SAFE_DISMOUNT = "/stopmacro [flying,nomod:" .. MOD_DISMOUNT_FLYING .. "]"
 local DISMOUNT = [[
 /leavevehicle [canexitvehicle]
 /dismount [mounted]
 ]]
-
-------------------------------------------------------------------------
-
-local _, ns = ...
-local _, PLAYER_CLASS = UnitClass("player")
-
-local GetItemCount, GetSpellInfo, HasDraenorZoneAbility, IsOutdoors, IsPlayerMoving, IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
-    = GetItemCount, GetSpellInfo, HasDraenorZoneAbility, IsOutdoors, IsPlayerMoving, IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
-
-------------------------------------------------------------------------
-
-local ACTION_MOUNT = "/click MountJournalSummonRandomFavoriteButton" -- "/run C_MountJournal.SummonByID(0)"
-local ACTION_MOUNT_PATTERN = gsub(ACTION_MOUNT, "[%(%)]", "%%%1")
 
 local SpellID = {
 	["Cat Form"] = 768,
@@ -46,9 +43,232 @@ local SpellID = {
 }
 
 local SpellName = {}
-for k, v in pairs(SpellID) do
-	SpellName[k] = GetSpellInfo(v)
+for name, id in pairs(SpellID) do
+	SpellName[name] = GetSpellInfo(id)
 end
+
+local ItemID = {
+	["Magic Broom"] = 37011,
+}
+
+local ItemName = {}
+for name, id in pairs(ItemID) do
+	ItemName[name] = GetItemInfo(id)
+end
+
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+
+local function GetOverrideMount()
+	local combat = UnitAffectingCombat("player")
+
+	-- Magic Broom
+	-- Instant but not usable in combat
+	if not combat and GetItemCount(ItemID["Magic Broom"]) > 0 then
+		return "/use " .. ItemName["Magic Broom"]
+	end
+
+	-- Nagrand garrison mounts: Frostwolf War Wolf, Telaari Talbuk
+	-- Can be summoned in combat
+	if GetZoneAbilitySpellInfo() == SpellID["Garrison Ability"] then
+		local _, _, _, _, _, _, id = GetSpellInfo(SpellName["Garrison Ability"])
+		if (id == 164222 or id == 165803) and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) and (UnitAffectingCombat("player") or not ns.CanFly()) then
+			return "/cast " ..   SpellName["Garrison Ability"]
+		end
+	end
+end
+
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+
+local GetMount
+
+do
+	local GROUND, FLYING, SWIMMING = 1, 2, 3
+
+	local GetMountInfoByID = C_MountJournal.GetMountInfoByID
+	local GetMountInfoExtraByID = C_MountJournal.GetMountInfoExtraByID
+
+	local mountTypeInfo = {
+		[230] = {100,99,0}, -- * ground -- 99 flying to use in flying areas if the player doesn't have any flying mounts as favorites
+		[231] = {20,0,60},  -- Riding Turtle / Sea Turtle
+		[232] = {0,0,450},  -- Abyssal Seahorse -- only in Vashj'ir
+		[241] = {101,0,0},  -- Qiraji Battle Tanks -- only in Temple of Ahn'Qiraj
+		[247] = {99,310,0}, -- Red Flying Cloud
+		[248] = {99,310,0}, -- * flying -- 99 ground to deprioritize in non-flying zones if any non-flying mounts are favorites
+		[254] = {0,0,60},   -- Subdued Seahorse -- +300% swim speed in Vashj'ir, +60% swim speed elsewhere
+		[269] = {100,0,0},  -- Water Striders
+		[284] = {60,0,0},   -- Chauffeured Chopper
+	}
+
+	local flexMounts = { -- flying mounts that look OK on the ground
+		[376] = true, -- Celestial Steed
+		[532] = true, -- Ghastly Charger
+		[594] = true, -- Grinning Reaver
+		[219] = true, -- Headless Horseman's Mount
+		[547] = true, -- Hearthsteed
+		[468] = true, -- Imperial Quilen
+		[363] = true, -- Invincible
+		[457] = true, -- Jade Panther
+		[451] = true, -- Jeweled Onyx Panther
+		[455] = true, -- Obsidian Panther
+		[458] = true, -- Ruby Panther
+		[456] = true, -- Sapphire Panther
+		[522] = true, -- Sky Golem
+		[459] = true, -- Sunstone Panther
+		[523] = true, -- Swift Windsteed
+		[439] = true, -- Tyrael's Charger
+		[593] = true, -- Warforged Nightmare
+		[421] = true, -- Winged Guardian
+	}
+
+	local zoneMounts = { -- special mounts that don't need to be favorites
+		[678] = true, -- Chauffeured Mechano-Hog
+		[679] = true, -- Chauffeured Mekgineer's Chopper
+		[312] = true, -- Sea Turtle
+		[420] = true, -- Subdued Seahorse
+		[373] = true, -- Vashj'ir Seahorse
+		[117] = true, -- Blue Qiraji Battle Tank
+		[120] = true, -- Green Qiraji Battle Tank
+		[118] = true, -- Red Qiraji Battle Tank
+		[119] = true, -- Yellow Qiraji Battle Tank
+	}
+
+	local vashjirMaps = {
+		[614] = true, -- Abyssal Depths
+		[610] = true, -- Kelp'thar Forest
+		[615] = true, -- Shimmering Expanse
+		[613] = true, -- Vashj'ir
+	}
+
+	local mountIDs = C_MountJournal.GetMountIDs()
+	local randoms = {}
+
+	local function FillMountList(targetType)
+		-- print("Looking for:", targetType == SWIMMING and "SWIMMING" or targetType == FLYING and "FLYING" or "GROUND")
+		wipe(randoms)
+
+		local bestSpeed = 0
+		local mapID = GetCurrentMapAreaID()
+		for i = 1, #mountIDs do
+			local mountID = mountIDs[i]
+			local name, spellID, _, _, isUsable, _, isFavorite = GetMountInfoByID(mountID)
+			if isUsable and (isFavorite or zoneMounts[mountID]) then
+				local _, _, sourceText, isSelfMount, mountType = GetMountInfoExtraByID(mountID)
+				local speed = mountTypeInfo[mountType][targetType]
+				if speed == 99 and flexMounts[mountID] then
+					speed = 100
+				elseif mountType == 254 and vashjirMaps[mapID] then -- Subdued Seahorse is faster in Vashj'ir
+					speed = 300
+				elseif mountType == 264 then -- Water Strider, prioritize in water, deprioritize on land
+					speed = IsSwimming() and 101 or 99
+				end
+				-- print("Checking:", name, mountType, "@", speed, "vs", bestSpeed)
+				if speed > 0 and speed >= bestSpeed then
+					if speed > bestSpeed then
+						bestSpeed = speed
+						wipe(randoms)
+					end
+					tinsert(randoms, spellID)
+				end
+			end
+		end
+		-- print("Found", #randoms, "possibilities")
+		return randoms
+	end
+
+	function GetMount()
+		-- TODO: Don't summon swimming mounts at water surface
+		local targetType = IsSubmerged() and SWIMMING or ns.CanFly() and FLYING or GROUND
+		FillMountList(targetType)
+
+		if #randoms == 0 and targetType == SWIMMING then
+			-- Fall back to non-swimming mounts
+			targetType = ns.CanFly() and FLYING or GROUND
+			FillMountList(targetType)
+		end
+
+		if #randoms > 0 then
+			local spellID = randoms[random(#randoms)]
+			return "/use " .. GetSpellInfo(spellID)
+		end
+	end
+end
+
+--[==[
+	local GetMountInfoByID = C_MountJournal.GetMountInfoByID
+	local SEA_LEGS = GetSpellInfo(73701)
+
+	local SEA_TURTLE = 312
+	local VASHJIR_SEAHORSE = 373
+	local SUBDUED_SEAHORSE = 420
+	local CHAUFFEUR = UnitFactionGroup("player") == "Horde" and 679 or 678
+
+	local AQBUGS = {
+		117, -- Blue Qiraji Battle Tank
+		120, -- Green Qiraji Battle Tank
+		118, -- Red Qiraji Battle Tank
+		119, -- Yellow Qiraji Battle Tank
+	}
+
+	function GetMount()
+		-- Use Chauffeured Chopper if no riding skill
+		if not HasRidingSkill() then
+			local name, _, _, _, usable = GetMountInfoByID(CHAUFFEUR)
+			if usable then
+				return "/cast " ..   name
+			else
+				return
+			end
+		end
+
+		-- Use underwater mounts while swimming
+		if IsSubmerged() then
+			-- Vashj'ir Seahorse (+450% swim speed in Vashj'ir)
+			local seahorseName, _, _, _, seahorseUsable = GetMountInfoByID(VASHJIR_SEAHORSE)
+			if seahorseUsable then return "/cast " ..   seahorseName end
+
+			-- Subdued Seahorse (+300% swim speed in Vashj'ir, +60% swim speed elsewhere)
+			seahorseName, _, _, _, seahorseUsable = GetMountInfoByID(SUBDUED_SEAHORSE)
+			if seahorseUsable and UnitBuff("player", SEA_LEGS) then return "/cast " ..   seahorseName end
+
+			-- Sea Turtle (+60% swim speed)
+			local turtleName, _, _, _, turtleUsable = GetMountInfoByID(SEA_TURTLE)
+			if turtleUsable and seahorseUsable then
+				return "/cast " ..   (math.random(1, 2) == 1 and turtleName or seahorseName)
+			elseif turtle then
+				return "/cast " ..   turtleName
+			end
+		end
+
+		-- Use Qiraji Battle Tanks while in the Temple of Ahn'qiraj
+		-- If any are marked as favorites, ignore ones that aren't
+		local _, _, _, _, _, _, _, instanceMapID = GetInstanceInfo()
+		if instanceMapID == 531 then
+			local numBugs, onlyFavorites = 0
+			for i = 1, #AQBUGS do
+				local bug = AQBUGS[i]
+				local name, _, _, _, usable, _, favorite = GetMountInfoByID(bug)
+				if usable and not (onlyFavorites and not favorite) then
+					if favorite and not onlyFavorites then
+						numBugs = 0
+						onlyFavorites = true
+					end
+					numBugs = numBugs + 1
+					hasBugs[numBugs] = name
+				end
+			end
+			if numBugs > 0 then
+				return "/cast " ..   hasBugs[math.random(numBugs)]
+			end
+		end
+	end
+end
+]==]
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+
+local GetAction
 
 local function HasRidingSkill(flyingOnly)
 	local hasSkill = IsSpellKnown(90265) and 310 or IsSpellKnown(34091) and 280 or IsSpellKnown(34090) and 150
@@ -60,73 +280,73 @@ end
 
 local function HasGlyph(id)
 	for i = 1, NUM_GLYPH_SLOTS do
-		local unlocked, glyphType, tooltipIndex, glyphSpellID, icon, glyphID = GetGlyphSocketInfo(i)
+		local _, _, _, _, _, glyphID = GetGlyphSocketInfo(i)
 		if id == glyphID then
 			return true
 		end
 	end
 end
 
-local GetAction
-
 ------------------------------------------------------------------------
 
-local button = CreateFrame("Button", "MountMeButton", nil, "SecureActionButtonTemplate")
-button:SetAttribute("type", "macro")
-
-------------------------------------------------------------------------
 if PLAYER_CLASS == "DRUID" then
-	local STAG_GLYPH, TRAVEL_GLYPH = 164, 1127
+	--[[
+	Travel Form
+	- outdoors,nocombat,flyable +310%
+	- outdoors,nocombat +100% (level 38, new in 7.1)
+	- outdoors +40%
+	--]]
 
 	local BLOCKING_FORMS
 	local orig_DISMOUNT = DISMOUNT
 
-	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. "]"
-	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
+	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" ..   MOD_TRAVEL_FORM ..   "]"
+	DISMOUNT = DISMOUNT ..   "\n/cancelform [form]"
 
 	function GetAction(force)
-		-- TODO: handle Glyph of Travel (TF = ground mount OOC)
-		-- ^ Should already work -- if the player is moving, they'll use
-		--   the travel form, otherwise they'll use a regular mount.
 		if force or not BLOCKING_FORMS then
 			BLOCKING_FORMS = "" -- in case of force
 			for i = 1, GetNumShapeshiftForms() do
 				local icon = strlower(GetShapeshiftFormInfo(i))
 				if not strmatch(icon, "spell_nature_forceofnature") then -- Moonkin Form OK
 					if BLOCKING_FORMS == "" then
-						BLOCKING_FORMS = ":" .. i
+						BLOCKING_FORMS = ":" ..   i
 					else
-						BLOCKING_FORMS = BLOCKING_FORMS .. "/" .. i
+						BLOCKING_FORMS = BLOCKING_FORMS ..   "/" ..   i
 					end
 				end
 			end
-			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform" .. BLOCKING_FORMS .. ",novehicleui,nomod:" .. MOD_TRAVEL_FORM .. "]"
-			DISMOUNT = orig_DISMOUNT .. "\n/cancelform [form" .. BLOCKING_FORMS .. "]"
+			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform" ..   BLOCKING_FORMS ..   ",novehicleui,nomod:" ..   MOD_TRAVEL_FORM ..   "]"
+			DISMOUNT = orig_DISMOUNT ..   "\n/cancelform [form" ..   BLOCKING_FORMS ..   "]"
 		end
 
 		local mountOK, flightOK = SecureCmdOptionParse(MOUNT_CONDITION), ns.CanFly()
 		if mountOK and flightOK and IsPlayerSpell(SpellID["Travel Form"]) then
-			return "/cast " .. SpellName["Travel Form"]
-		elseif mountOK and not IsPlayerMoving() and HasRidingSkill() then
-			return ACTION_MOUNT
+			return "/cast " ..   SpellName["Travel Form"]
+		end
+
+		local mount = mountOK and not IsPlayerMoving() and GetMount()
+		if mount then
+			return mount
 		elseif IsPlayerSpell(SpellID["Travel Form"]) and (IsOutdoors() or IsSubmerged()) then
-			return "/cast [nomounted,noform] " .. SpellName["Travel Form"]
+			return "/cast [nomounted,noform] " ..   SpellName["Travel Form"]
 		elseif IsPlayerSpell(SpellID["Cat Form"]) then
-			return "/cast [nomounted,noform" .. BLOCKING_FORMS .. "] " .. SpellName["Cat Form"]
+			return "/cast [nomounted,noform" ..   BLOCKING_FORMS ..   "] " ..   SpellName["Cat Form"]
 		end
 	end
 
 ------------------------------------------------------------------------
 elseif PLAYER_CLASS == "SHAMAN" then
 
-	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. "]"
-	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
+	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" ..   MOD_TRAVEL_FORM ..   "]"
+	DISMOUNT = DISMOUNT ..   "\n/cancelform [form]"
 
 	function GetAction()
-		if not IsPlayerMoving() and HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
-			return ACTION_MOUNT
+		local mount = SecureCmdOptionParse(MOUNT_CONDITION) and not IsPlayerMoving() and GetMount()
+		if mount then
+			return mount
 		elseif IsPlayerSpell(SpellID["Ghost Wolf"]) then
-			return "/cast [nomounted,noform] " .. SpellName["Ghost Wolf"]
+			return "/cast [nomounted,noform] " ..   SpellName["Ghost Wolf"]
 		end
 	end
 
@@ -161,15 +381,15 @@ else
 
 		local moving = IsPlayerMoving()
 		if classAction and (moving or combat) then
-			return "/cast [nomounted,novehicleui] " .. classAction
+			return "/cast [nomounted,novehicleui] " ..   classAction
 		elseif not moving then
 			local action
-			if HasRidingSkill() and SecureCmdOptionParse(MOUNT_CONDITION) then
-				action = ACTION_MOUNT
+			if SecureCmdOptionParse(MOUNT_CONDITION) then
+				action = GetMount()
 			end
 			if classAction and PLAYER_CLASS == "WARLOCK" then
 				-- TODO: why is /cancelform in here???
-				action = "/cancelaura " .. classAction .. (action and ("\n/cancelform [form]\n" .. action) or "")
+				action = "/cancelaura " ..   classAction ..   (action and ("\n/cancelform [form]\n" ..   action) or "")
 			end
 			return action
 		end
@@ -178,105 +398,14 @@ end
 
 ------------------------------------------------------------------------
 
-local GetMountAction
-do
-	local GetMountInfoByID = C_MountJournal.GetMountInfoByID
-	local SEA_LEGS = GetSpellInfo(73701)
-
-	local SEA_TURTLE = 312
-	local VASHJIR_SEAHORSE = 373
-	local SUBDUED_SEAHORSE = 420
-	local CHAUFFEUR = UnitFactionGroup("player") == "Horde" and 679 or 678
-
-	local AQBUGS = {
-		117, -- Blue Qiraji Battle Tank
-		120, -- Green Qiraji Battle Tank
-		118, -- Red Qiraji Battle Tank
-		119, -- Yellow Qiraji Battle Tank
-	}
-
-	local hasBugs = {}
-
-	function GetMountAction()
-		-- Magic Broom
-		-- Instant but not usable in combat
-		if IsPlayerMoving() and GetItemCount(37011) > 0 then
-			return "/use " .. GetItemInfo(37011)
-		end
-
-		-- Nagrand garrison mounts: Frostwolf War Wolf, Telaari Talbuk
-		-- Can be summoned in combat
-		if GetZoneAbilitySpellInfo() == SpellID["Garrison Ability"] then
-			local _, _, _, _, _, _, id = GetSpellInfo(SpellName["Garrison Ability"])
-			if (id == 164222 or id == 165803) and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) and (UnitAffectingCombat("player") or not ns.CanFly()) then
-				return "/cast " .. SpellName["Garrison Ability"]
-			end
-		end
-
-		if not SecureCmdOptionParse(MOUNT_CONDITION:sub(1, -2) .. ",nomod:" .. MOD_TRAVEL_FORM .. "]") then
-			return
-		end
-
-		-- Use Chauffeured Chopper if no riding skill
-		if not HasRidingSkill() then
-			local _, _, _, _, chauffeur = GetMountInfoByID(CHAUFFEUR)
-			if chauffeur then
-				return "/cast " .. CHAUFFEUR
-			else
-				return
-			end
-		end
-
-		-- Use underwater mounts while swimming
-		if IsSubmerged() then
-			-- Vashj'ir Seahorse (+450% swim speed in Vashj'ir)
-			local seahorseName, _, _, _, seahorseUsable = GetMountInfoByID(VASHJIR_SEAHORSE)
-			if seahorseUsable then return "/cast " .. seahorseName end
-
-			-- Subdued Seahorse (+300% swim speed in Vashj'ir, +60% swim speed elsewhere)
-			seahorseName, _, _, _, seahorseUsable = GetMountInfoByID(SUBDUED_SEAHORSE)
-			if seahorseUsable and UnitBuff("player", SEA_LEGS) then return "/cast " .. seahorseName end
-
-			-- Sea Turtle (+60% swim speed)
-			local turtleName, _, _, _, turtleUsable = GetMountInfoByID(SEA_TURTLE)
-			if turtleUsable and seahorseUsable then
-				return "/cast " .. (math.random(1, 2) == 1 and turtleName or seahorseName)
-			elseif turtle then
-				return "/cast " .. turtleName
-			end
-		end
-
-		-- Use Qiraji Battle Tanks while in the Temple of Ahn'qiraj
-		-- If any are marked as favorites, ignore ones that aren't
-		local _, _, _, _, _, _, _, instanceMapID = GetInstanceInfo()
-		if instanceMapID == 531 then
-			local numBugs, onlyFavorites = 0
-			for i = 1, #AQBUGS do
-				local bug = AQBUGS[i]
-				local name, _, _, _, usable, _, favorite = GetMountInfoByID(bug)
-				if usable and not (onlyFavorites and not favorite) then
-					if favorite and not onlyFavorites then
-						numBugs = 0
-						onlyFavorites = true
-					end
-					numBugs = numBugs + 1
-					hasBugs[numBugs] = name
-				end
-			end
-			if numBugs > 0 then
-				return "/cast " .. hasBugs[math.random(numBugs)]
-			end
-		end
-	end
-end
-
-------------------------------------------------------------------------
+local button = CreateFrame("Button", "MountMeButton", nil, "SecureActionButtonTemplate")
+button:SetAttribute("type", "macro")
 
 function button:Update()
 	if InCombatLockdown() then return end
 
 	self:SetAttribute("macrotext", strtrim(strjoin("\n",
-		GetMountAction() or GetAction() or "",
+		GetOverrideMount() or GetAction() or "",
 		GetCVarBool("autoDismountFlying") and "" or SAFE_DISMOUNT,
 		DISMOUNT
 	)))
