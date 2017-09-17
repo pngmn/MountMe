@@ -9,7 +9,7 @@
 local _, ns = ...
 -- TODO: Find out when Wintergrasp isn't flyable? Or too old to bother with?
 
-local flyingSpell = {
+local flyingSpells = {
 	[0]    =  90267, -- Eastern Kingdoms = Flight Master's License
 	[1]    =  90267, -- Kalimdor         = Flight Master's License
 	[646]  =  90267, -- Deepholm         = Flight Master's License
@@ -22,12 +22,7 @@ local flyingSpell = {
 }
 
 local noFlySubzones = {
-	-- IsFlyableArea() incorrectly returns true in these subzones
-	["Nespirah"] = true,
-	["Неспира"] = true,
-	["네스피라"] = true,
-	["奈瑟匹拉"] = true,
-	["奈斯畢拉"] = true,
+	["Nespirah"] = true, ["Неспира"] = true, ["네스피라"] = true, ["奈瑟匹拉"] = true, ["奈斯畢拉"] = true,
 }
 
 local GetInstanceInfo = GetInstanceInfo
@@ -36,14 +31,18 @@ local IsFlyableArea = IsFlyableArea
 local IsSpellKnown = IsSpellKnown
 local IsOnGarrisonMap = C_Garrison.IsOnGarrisonMap
 local IsOnShipyardMap = C_Garrison.IsOnShipyardMap
+local IsPlayerInGarrison = C_Garrison.IsPlayerInGarrison
 
 function ns.CanFly()
-	if not IsFlyableArea() or IsOnGarrisonMap() or IsOnShipyardMap() or noFlySubzones[GetSubZoneText() or ""] then
+	if not IsFlyableArea()
+	or IsPlayerInGarrison(LE_GARRISON_TYPE_7_0) -- Legion class order hall
+	or IsOnGarrisonMap() or IsOnShipyardMap() -- Warlords garrison
+	or noFlySubzones[GetSubZoneText() or ""] then
 		return false
 	end
 
 	local _, _, _, _, _, _, _, instanceMapID = GetInstanceInfo()
-	local reqSpell = flyingSpell[instanceMapID]
+	local reqSpell = flyingSpells[instanceMapID]
 	if reqSpell then
 		return reqSpell > 0 and IsSpellKnown(reqSpell)
 	else
