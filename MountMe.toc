@@ -1,4 +1,4 @@
-## Interface: 70200
+## Interface: 70300
 ## Version: @project-version@
 
 ## Title: MountMe
@@ -7,12 +7,15 @@
 ## Notes-esES: Un botón para montar, desmontar y usar las formas de viaje.
 ## Notes-esMX: Un botón para montar, desmontar y usar las formas de viaje.
 
-## Author: Phanx, Akkorian
-## X-Email: armordecai@protonmail.com
-## X-Copyright: Copyright (c) 2014-2017 Phanx. All rights reserved.
-## X-Website: https://github.com/Phanx/MountMe
-## X-Curse-Project-ID: mountme
+## Author: Phanx
+## X-Email: addons@phanx.net
+## X-License: All rights reserved
+## X-Website: https://github.com/phanx-wow/MountMe
+## X-Curse-Project-ID: 86804
 ## X-WoWI-ID: 23309
 
-API_CanFly.lua
+## OptionalDeps: LibFlyable
+Libs/LibStub/LibStub.lua
+Libs/LibFlyable/LibFlyable.lua
+
 Addon.lua

@@ -7,3 +7,13 @@ manual-changelog:
 ignore:
    - CHANGELOG.md
    - README.md
+
+externals:
+   Libs/LibFlyable:
+      url: https://repos.curseforge.com/wow/libflyable
+      tag: latest
+   Libs/LibStub:
+      url: https://repos.wowace.com/wow/libstub/trunk
+      tag: 1.0
+
+enable-nolib-creation: no
