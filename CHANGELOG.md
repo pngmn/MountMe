@@ -1,3 +1,14 @@
+### Version 7.3.5.0
+
+* Added workaround for flyable detection bugs in WoW 7.3.5
+* Added workaround for WoW wrongly reporting that class order halls are flyable
+* Added support for Broken Isles Pathfinder
+* Added support for heirloom mounts (Chauffeured Chopper etc.)
+* Merged the mount selection logic from my other addon AnyFavoriteMount (which is now discontinued):
+   - Flying mounts are not summoned in non-flying areas
+   - Underwater and zone-specific mounts are summoned when appropriate even if they aren't marked as favorites
+* Split the flyable detection logic to a reusable library component (see LibFlyable)
+
 ### Version 7.0.3.0
 
 * Updated for WoW 7.0 (Legion)
@@ -42,4 +53,3 @@
 ### Version 6.0.3.1
 
 * First public release
-
