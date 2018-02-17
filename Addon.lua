@@ -318,7 +318,7 @@ else
 		111400, -- Warlock: Burning Rush
 		 68992, -- Worgen: Darkflight (2m)
 	}
-	local ClassActionLimited = {
+	local ClassActionBlocked = {
 		[125883] = function(combat) return combat or IsIndoors() end, -- Zen Flight
 	}
 
@@ -328,7 +328,7 @@ else
 		local classAction
 		for i = 1, #ClassActionIDs do
 			local id = ClassActionIDs[i]
-			if IsPlayerSpell(id) and not (ClassActionLimited[id] and ClassActionLimited[id](combat)) then
+			if IsPlayerSpell(id) and not (ClassActionBlocked[id] and ClassActionBlocked[id](combat)) then
 				classAction = GetSpellInfo(id)
 				break
 			end
