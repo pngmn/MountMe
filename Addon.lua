@@ -1,10 +1,8 @@
 --[[--------------------------------------------------------------------
 	MountMe
 	One button to mount, dismount, and use travel forms.
-	Copyright (c) 2014-2018 Phanx <addons@phanx.net>. All rights reserved.
+	Copyright 2014-2018 Phanx <addons@phanx.net>. All rights reserved.
 	https://github.com/phanx-wow/MountMe
-	https://www.curseforge.com/wow/addons/mountme
-	https://www.wowinterface.com/downloads/info23309-MountMe.html
 ------------------------------------------------------------------------
 	TODO:
 	- Cancel transformation buffs that block mounting?
