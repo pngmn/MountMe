@@ -14,8 +14,12 @@
 ## X-Curse-Project-ID: 86804
 ## X-WoWI-ID: 23309
 
+## SavedVariables: MountMeSettings
+## SavedVariablesPerCharacter: MountMeFavorites
+
 ## OptionalDeps: LibFlyable
 Libs/LibStub/LibStub.lua
 Libs/LibFlyable/LibFlyable.lua
 
 Addon.lua
+Favorites.lua
