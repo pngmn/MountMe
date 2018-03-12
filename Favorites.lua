@@ -5,9 +5,32 @@
 	https://github.com/phanx-wow/MountMe
 ----------------------------------------------------------------------]]
 
-local enabled, hooked, setting
+local f = CreateFrame("Frame")
+f:SetScript("OnEvent", function(f, e, ...) return f[e](f, ...) end)
+f:RegisterEvent("PLAYER_LOGIN")
 
-local function GetFavoriteMounts()
+function f:PLAYER_LOGIN()
+	MountMeSettings = MountMeSettings or {}
+
+	if MountMeSettings.favoritesPerChar then
+		if not MountMeFavorites then
+			MountMeFavorites = self:GetFavoriteMounts()
+		else
+			self:SetFavoriteMounts(MountMeFavorites)
+		end
+		hooksecurefunc(C_MountJournal, "SetIsFavorite", self.SetIsFavorite)
+		self.hooked = true
+		self.active = true
+	end
+end
+
+function f:MOUNT_JOURNAL_SEARCH_UPDATED()
+	if self.settingFavorites then
+		self:SetFavoriteMounts(MountMeFavorites)
+	end
+end
+
+function f:GetFavoriteMounts()
 	local favorites = {}
 	for i = 1, C_MountJournal.GetNumDisplayedMounts() do
 		local _, _, _, _, _, _, isFavorite, _, _, _, _, mountID = C_MountJournal.GetDisplayedMountInfo(i)
@@ -19,42 +42,37 @@ local function GetFavoriteMounts()
 	return favorites
 end
 
-local function SetFavoriteMounts(favorites)
-	setting = true
+function f:SetFavoriteMounts(favorites)
+	self.settingFavorites = true
+	self:RegisterEvent("MOUNT_JOURNAL_SEARCH_UPDATED")
+	MountJournal:UnregisterEvent("MOUNT_JOURNAL_SEARCH_UPDATED")
 
-	local i = 1
-	local n = C_MountJournal.GetNumDisplayedMounts()
-	while i <= n do
+	for i = 1, C_MountJournal.GetNumDisplayedMounts() do
 		local name, _, _, _, _, _, isFavorite, _, _, _, _, mountID = C_MountJournal.GetDisplayedMountInfo(i)
 		if isFavorite and not favorites[mountID] then
-			print("Remove favorite:", name)
-			C_MountJournal.SetIsFavorite(i, false)
-			-- This mount moves down the list,
-			-- next mount moves up to this index.
-		else
-			if favorites[mountID] and not isFavorite then
-				print("Add favorite:", name)
-				C_MountJournal.SetIsFavorite(i, true)
-				-- This mount moves up the list,
-				-- previous mount moves down to this index,
-				-- next mount is still at next index.
-			end
-			-- Go to next index.
-			i = i + 1
+			return C_MountJournal.SetIsFavorite(i, false)
+		elseif favorites[mountID] and not isFavorite then
+			return C_MountJournal.SetIsFavorite(i, true)
 		end
 	end
 
-	setting = false
+	self.settingFavorites = false
+	self:UnregisterEvent("MOUNT_JOURNAL_SEARCH_UPDATED")
+	MountJournal:RegisterEvent("MOUNT_JOURNAL_SEARCH_UPDATED")
+	if MountJournal:IsVisible() then
+		MountJournal_FullUpdate(MountJournal)
+	end
 end
 
-local function SetIsFavorite(index, isFavorite)
-	if setting or not active then return end
+function f.SetIsFavorite(index, isFavorite)
+	local self = f
+	if self.settingFavorites or not self.active then return end
 
 	-- By the time this post-hook is running, the indices have already changed,
 	-- and the index passed to SetIsFavorite doesn't map to the mount that was
 	-- added or removed as a favorite. We'll just get the new list and compare.
 
-	local favorites = GetFavoriteMounts()
+	local favorites = self:GetFavoriteMounts()
 	local action = isFavorite and "Add" or "Remove"
 	local a = isFavorite and favorites or MountMeFavorites
 	local b = isFavorite and MountMeFavorites or favorites
@@ -63,46 +81,29 @@ local function SetIsFavorite(index, isFavorite)
 		if not b[mountID] then
 			MountMeFavorites[mountID] = isFavorite and true or nil
 			local name = C_MountJournal.GetMountInfoByID(mountID)
-			print(action, "favorite by user:", name)
 		end
 	end
 end
 
-local f = CreateFrame("Frame")
-f:RegisterEvent("PLAYER_LOGIN")
-f:SetScript("OnEvent", function()
-	MountMeSettings = MountMeSettings or {}
-
-	if MountMeSettings.favoritesPerChar then
-		if not MountMeFavorites then
-			MountMeFavorites = GetFavoriteMounts()
-		else
-			SetFavoriteMounts(MountMeFavorites)
-		end
-		hooksecurefunc(C_MountJournal, "SetIsFavorite", SetIsFavorite)
-		hooked = true
-		active = true
-	end
-end)
-
 SLASH_MOUNTME1 = "/mountme"
 SlashCmdList["MOUNTME"] = function(cmd)
+	local self = f
 	cmd = (cmd or ""):lower()
 
 	if cmd == "char" then
 		local v = not MountMeSettings.favoritesPerChar
 		MountMeSettings.favoritesPerChar = v
 		if v then
-			MountMeFavorites = GetFavoriteMounts()
-			if not hooked then
-				hooksecurefunc(C_MountJournal, "SetIsFavorite", SetIsFavorite)
-				hooked = true
+			MountMeFavorites = self:GetFavoriteMounts()
+			if not self.hooked then
+				hooksecurefunc(C_MountJournal, "SetIsFavorite", self.SetIsFavorite)
+				self.hooked = true
 			end
-			active = true
+			self.active = true
 			DEFAULT_CHAT_FRAME:AddMessage(string.format("%sMountMe:|r %s", NORMAL_FONT_COLOR_CODE,
 				"Now saving favorite mounts per-character."))
 		else
-			active = false
+			self.active = false
 			DEFAULT_CHAT_FRAME:AddMessage(string.format("%sMountMe:|r %s", NORMAL_FONT_COLOR_CODE,
 				"Now saving favorite mounts account-wide."))
 		end
