@@ -1,3 +1,9 @@
+### Version 7.3.5.1
+
+* Favorite mounts can now be saved per-character -- type `/mountme` for options
+* Added demon hunter Fel Rush to the list of abilities to use while moving or in combat
+* Removed workaround for flyable detection bugs in WoW 7.3.5 (fixed by Blizzard)
+
 ### Version 7.3.5.0
 
 * Added workaround for flyable detection bugs in WoW 7.3.5
