@@ -158,10 +158,10 @@ do
 	}
 
 	local vashjirMaps = {
-		[614] = true, -- Abyssal Depths
-		[610] = true, -- Kelp'thar Forest
-		[615] = true, -- Shimmering Expanse
-		[613] = true, -- Vashj'ir
+		[204] = true, -- Abyssal Depths
+		[201] = true, -- Kelp'thar Forest
+		[205] = true, -- Shimmering Expanse
+		[203] = true, -- Vashj'ir
 	}
 
 	local mountIDs = C_MountJournal.GetMountIDs()
@@ -172,7 +172,7 @@ do
 		wipe(randoms)
 
 		local bestSpeed = 0
-		local mapID = GetCurrentMapAreaID()
+		local mapID = C_Map.GetBestMapForUnit("player")
 		for i = 1, #mountIDs do
 			local mountID = mountIDs[i]
 			local name, spellID, _, _, isUsable, _, isFavorite = GetMountInfoByID(mountID)
