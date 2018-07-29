@@ -99,32 +99,27 @@ end
 
 ------------------------------------------------------------------------
 
-local L = {
-	AVAILABLE_COMMANDS = "Available commands:",
-	OFF = "OFF",
-	ON = "ON",
-	PER_CHAR_DESC = "Save favorite mounts per character",
-	PER_CHAR_OFF = "Now saving favorite mounts account-wide.",
-	PER_CHAR_ON = "Now saving favorite mounts per character.",
-	VERSION_INFO_S = "Version %s loaded.",
-}
+local L = setmetatable({}, { __index = function(t, k)
+	t[k] = k
+	return k
+end })
 
 if GetLocale() == "deDE" then
-	L.AVAILABLE_COMMANDS = "Verfügbare Befehle:"
-	L.OFF = "AUS"
-	L.ON = "AN"
-	L.PER_CHAR_DESC = "Speichern Lieblingsreittiere pro Charakter"
-	L.PER_CHAR_OFF = "Lieblingsreittiere wird nun kontoweit gespeichert."
-	L.PER_CHAR_ON = "Lieblingsreittiere wird nun pro Charakter gespeichert."
-	L.VERSION_INFO_S = "Version %s geladen."
+	L["Available commands:"] = "Verfügbare Befehle:"
+	L["Now saving favorite mounts account-wide."] = "Lieblingsreittiere wird nun kontoweit gespeichert."
+	L["Now saving favorite mounts per character."] = "Lieblingsreittiere wird nun pro Charakter gespeichert."
+	L["OFF"] = "AUS"
+	L["ON"] = "AN"
+	L["Save favorite mounts per character"] = "Speichern Lieblingsreittiere pro Charakter"
+	L["Version %s loaded."] = "Version %s geladen."
 elseif GetLocale():match("^es") then
-	L.AVAILABLE_COMMANDS = "Comandos disponibles:"
-	L.OFF = "INACTIVO"
-	L.ON = "ACTIVO"
-	L.PER_CHAR_DESC = "Guardar monturas favoritas por personaje"
-	L.PER_CHAR_OFF = "Monturas favoritas ahora se guardan para toda la cuenta."
-	L.PER_CHAR_ON = "Monturas favoritas ahora se guardan por personaje."
-	L.VERSION_INFO_S = "Versión %s cargada."
+	L["Available commands:"] = "Comandos disponibles:"
+	L["Now saving favorite mounts account-wide."] = "Monturas favoritas ahora se guardan para toda la cuenta."
+	L["Now saving favorite mounts per character."] = "Monturas favoritas ahora se guardan por personaje."
+	L["OFF"] = "INACTIVO"
+	L["ON"] = "ACTIVO"
+	L["Save favorite mounts per character"] = "Guardar monturas favoritas por personaje"
+	L["Version %s loaded."] = "Versión %s cargada."
 end
 
 SLASH_MOUNTME1 = "/mountme"
@@ -137,19 +132,19 @@ SlashCmdList["MOUNTME"] = function(cmd)
 		if v then
 			Favorites:Enable()
 			DEFAULT_CHAT_FRAME:AddMessage(string.format("%sMountMe:|r %s", NORMAL_FONT_COLOR_CODE,
-				L.PER_CHAR_ON))
+				L["Now saving favorite mounts per character."]))
 		else
 			Favorites:Disable()
 			DEFAULT_CHAT_FRAME:AddMessage(string.format("%sMountMe:|r %s", NORMAL_FONT_COLOR_CODE,
-				L.PER_CHAR_OFF))
+				L["Now saving favorite mounts account-wide."]))
 		end
 	return end
 
 	DEFAULT_CHAT_FRAME:AddMessage(string.format("%sMountMe:|r %s %s", NORMAL_FONT_COLOR_CODE,
-		string.format(L.VERSION_INFO_S, GetAddOnMetadata("MountMe", "Version")),
-		L.AVAILABLE_COMMANDS))
+		string.format(L["Version %s loaded."], GetAddOnMetadata("MountMe", "Version")),
+		L["Available commands:"]))
 	DEFAULT_CHAT_FRAME:AddMessage(string.format("- %s%s|r - %s (%s%s|r)", NORMAL_FONT_COLOR_CODE,
-		"char", L.PER_CHAR_DESC,
+		"char", L["Save favorite mounts per character"],
 		MountMeSettings.favoritesPerChar and GREEN_FONT_COLOR_CODE or GRAY_FONT_COLOR_CODE,
-		MountMeSettings.favoritesPerChar and L.ON or L.OFF))
+		MountMeSettings.favoritesPerChar and L["ON"] or L["OFF"]))
 end
