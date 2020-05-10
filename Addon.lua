@@ -155,6 +155,19 @@ do
 		[120] = true, -- Green Qiraji Battle Tank
 		[118] = true, -- Red Qiraji Battle Tank
 		[119] = true, -- Yellow Qiraji Battle Tank
+		[1166] = true, -- Great Sea Ray
+		[1258] = true, -- Fabious
+		[312] = true, -- Sea Turtle
+		[420] = true, -- Subdued Seahorse
+		[1169] = true, -- Surf Jelly
+		[125] = true, -- Riding Turtle
+		[373] = true, -- Vashj'ir Seahorse
+		[838] = true, -- Fathom Dweller
+		[982] = true, -- Pond Nettle
+		[1208] = true, -- Saltwater Seahorse
+		[1262] = true, -- Inkscale Deepseeker
+		[855] = true, -- Darkwater Skate
+		[1260] = true, -- Crimson Tidestallion
 	}
 
 	local vashjirMaps = {
@@ -200,9 +213,13 @@ do
 		return randoms
 	end
 
+	local function IsUnderwater()
+		local B, b, _, _, a = "BREATH", GetMirrorTimerInfo(2)
+		return (IsSwimming() and ((b==B) or (b==B and a <= -1)))
+	end
+
 	function GetMount()
-		-- TODO: Don't summon swimming mounts at water surface
-		local targetType = IsSubmerged() and SWIMMING or LibFlyable:IsFlyableArea() and FLYING or GROUND
+		local targetType = IsUnderwater() and SWIMMING or LibFlyable:IsFlyableArea() and FLYING or GROUND
 		FillMountList(targetType)
 
 		if #randoms == 0 and targetType == SWIMMING then
