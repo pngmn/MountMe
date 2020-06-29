@@ -79,7 +79,7 @@ local function GetOverrideMount()
 		if (id == 164222 or id == 165803)
 		and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION)
 		and (UnitAffectingCombat("player") or not LibFlyable:IsFlyableArea()) then
-			return "/cast " ..   SpellName["Garrison Ability"]
+			return "/cast " .. SpellName["Garrison Ability"]
 		end
 	end
 end
@@ -94,6 +94,7 @@ do
 
 	local GetMountInfoByID = C_MountJournal.GetMountInfoByID
 	local GetMountInfoExtraByID = C_MountJournal.GetMountInfoExtraByID
+	-- local GetAppliedMountEquipmentID = C_MountJournal.GetAppliedMountEquipmentID()
 
 	local mountTypeInfo = {
 		[230] = {100,99,0}, -- ground -- 99 flying to use in flying areas if the player doesn't have any flying mounts as favorites
@@ -108,66 +109,70 @@ do
 	}
 
 	local flexMounts = { -- flying mounts that look OK on the ground
-		[530] = true, -- Armored Skyscreamer
-		[864] = true, -- Ban-Lu, Grandmaster's Companion
-		[376] = true, -- Celestial Steed
-		[600] = true, -- Dread Raven
-		[888] = true, -- Fraseer's Raging Tempest
-		[532] = true, -- Ghastly Charger
-		[594] = true, -- Grinning Reaver
 		[219] = true, -- Headless Horseman's Mount
-		[547] = true, -- Hearthsteed
-		[885] = true, -- Highlord's Golden Charger
-		[894] = true, -- Highlord's Valorous Charger
-		[892] = true, -- Highlord's Vengeful Charger
-		[983] = true, -- Highlord's Vigilant Charger
-		[763] = true, -- Illidari Felstalker
-		[468] = true, -- Imperial Quilen
 		[363] = true, -- Invincible
-		[552] = true, -- Ironbound Wraithcharger
-		[457] = true, -- Jade Panther
+		[376] = true, -- Celestial Steed
+		[421] = true, -- Winged Guardian
+		[439] = true, -- Tyrael's Charger
 		[451] = true, -- Jeweled Onyx Panther
+		[455] = true, -- Obsidian Panther
+		[456] = true, -- Sapphire Panther
+		[457] = true, -- Jade Panther
+		[458] = true, -- Ruby Panther
+		[459] = true, -- Sunstone Panther
+		[468] = true, -- Imperial Quilen
+		[522] = true, -- Sky Golem
+		[523] = true, -- Swift Windsteed
+		[530] = true, -- Armored Skyscreamer
+		[532] = true, -- Ghastly Charger
+		[547] = true, -- Hearthsteed
+		[552] = true, -- Ironbound Wraithcharger
+		[593] = true, -- Warforged Nightmare
+		[594] = true, -- Grinning Reaver
+		[600] = true, -- Dread Raven
+		[741] = true, -- Mystic Runesaber
+		[763] = true, -- Illidari Felstalker
+		[779] = true, -- Spirit of Eche'ro
+		[845] = true, -- Mechanized Lumber Extractor
+		[864] = true, -- Ban-Lu, Grandmaster's Companion
+		[868] = true, -- SLayer's Felbroken Shrieker
+		[885] = true, -- Highlord's Golden Charger
+		[888] = true, -- Fraseer's Raging Tempest
+		[892] = true, -- Highlord's Vengeful Charger
+		[894] = true, -- Highlord's Valorous Charger
+		[898] = true, -- Netherlord's Chaotic Wrathsteed
+		[930] = true, -- Netherlord's Brimstone Wrathsteed
+		[931] = true, -- Netherlord's Accursed Wrathsteed
 		[932] = true, -- Lightforged Warframe
 		[949] = true, -- Luminous Starseeker
-		[845] = true, -- Mechanized Lumber Extractor
-		[741] = true, -- Mystic Runesaber
-		[931] = true, -- Netherlord's Accursed Wrathsteed
-		[930] = true, -- Netherlord's Brimstone Wrathsteed
-		[898] = true, -- Netherlord's Chaotic Wrathsteed
-		[455] = true, -- Obsidian Panther
-		[458] = true, -- Ruby Panther
-		[456] = true, -- Sapphire Panther
-		[522] = true, -- Sky Golem
-		[868] = true, -- SLayer's Felbroken Shrieker
-		[779] = true, -- Spirit of Eche'ro
-		[459] = true, -- Sunstone Panther
-		[523] = true, -- Swift Windsteed
-		[439] = true, -- Tyrael's Charger
-		[593] = true, -- Warforged Nightmare
-		[421] = true, -- Winged Guardian
+		[983] = true, -- Highlord's Vigilant Charger
+		[1216] = true, -- Priestess' Moonsaber
 	}
 
 	local zoneMounts = { -- special mounts that don't need to be favorites
-		[678] = true, -- Chauffeured Mechano-Hog
-		[679] = true, -- Chauffeured Mekgineer's Chopper
-		[312] = true, -- Sea Turtle
-		[420] = true, -- Subdued Seahorse
-		[373] = true, -- Vashj'ir Seahorse
 		[117] = true, -- Blue Qiraji Battle Tank
-		[120] = true, -- Green Qiraji Battle Tank
 		[118] = true, -- Red Qiraji Battle Tank
 		[119] = true, -- Yellow Qiraji Battle Tank
-		[1166] = true, -- Great Sea Ray
-		[1258] = true, -- Fabious
-		[312] = true, -- Sea Turtle
-		[420] = true, -- Subdued Seahorse
-		[1169] = true, -- Surf Jelly
+		[120] = true, -- Green Qiraji Battle Tank
 		[125] = true, -- Riding Turtle
+		[312] = true, -- Sea Turtle
+		[312] = true, -- Sea Turtle
 		[373] = true, -- Vashj'ir Seahorse
+		[373] = true, -- Vashj'ir Seahorse
+		[420] = true, -- Subdued Seahorse
+		[420] = true, -- Subdued Seahorse
+		[678] = true, -- Chauffeured Mechano-Hog
+		[679] = true, -- Chauffeured Mekgineer's Chopper
 		[838] = true, -- Fathom Dweller
+		[855] = true, -- Darkwater Skate
 		[982] = true, -- Pond Nettle
+		[1166] = true, -- Great Sea Ray
+		[1169] = true, -- Surf Jelly
 		[1208] = true, -- Saltwater Seahorse
+		[1258] = true, -- Fabious
+		[1260] = true, -- Crimson Tidestallion
 		[1262] = true, -- Inkscale Deepseeker
+	}
 
 	local repairMounts = {
 		[280] = true, -- Traveler's Tundra Mammoth
@@ -177,14 +182,19 @@ do
 	}
 
 	local vashjirMaps = {
-		[204] = true, -- Abyssal Depths
 		[201] = true, -- Kelp'thar Forest
-		[205] = true, -- Shimmering Expanse
 		[203] = true, -- Vashj'ir
+		[204] = true, -- Abyssal Depths
+		[205] = true, -- Shimmering Expanse
 	}
 
 	local mountIDs = C_MountJournal.GetMountIDs()
 	local randoms = {}
+
+	local function IsUnderwater()
+		local B, b, _, _, a = "BREATH", GetMirrorTimerInfo(2)
+		return (IsSwimming() and ((b==B and a <= -1)))
+	end
 
 	local function FillMountList(targetType)
 		-- print("Looking for:", targetType == SWIMMING and "SWIMMING" or targetType == FLYING and "FLYING" or "GROUND")
@@ -217,11 +227,6 @@ do
 		end
 		-- print("Found", #randoms, "possibilities")
 		return randoms
-	end
-
-	local function IsUnderwater()
-		local B, b, _, _, a = "BREATH", GetMirrorTimerInfo(2)
-		return (IsSwimming() and ((b==B) or (b==B and a <= -1)))
 	end
 
 	function GetMount()
@@ -295,6 +300,7 @@ if PLAYER_CLASS == "DRUID" then
 	local orig_DISMOUNT = DISMOUNT
 
 	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
+	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
 
 	function GetAction(force)
 		if force or not BLOCKING_FORMS then
@@ -303,27 +309,28 @@ if PLAYER_CLASS == "DRUID" then
 				local icon = strlower(GetShapeshiftFormInfo(i))
 				if not strmatch(icon, "spell_nature_forceofnature") then -- Moonkin Form OK
 					if BLOCKING_FORMS == "" then
-						BLOCKING_FORMS = ":" ..   i
+						BLOCKING_FORMS = ":" .. i
 					else
-						BLOCKING_FORMS = BLOCKING_FORMS ..   "/" ..   i
+						BLOCKING_FORMS = BLOCKING_FORMS .. "/" .. i
 					end
 				end
 			end
 			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform" .. BLOCKING_FORMS .. ",novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
+			DISMOUNT = orig_DISMOUNT .. "\n/cancelform [form" .. BLOCKING_FORMS .. "]"
 		end
 
 		local mountOK, flightOK = SecureCmdOptionParse(MOUNT_CONDITION), LibFlyable:IsFlyableArea()
 		if mountOK and flightOK and IsPlayerSpell(SpellID["Travel Form"]) then
-			return "/cast " ..   SpellName["Travel Form"]
+			return "/cast " .. SpellName["Travel Form"]
 		end
 
 		local mount = mountOK and not IsPlayerMoving() and GetMount()
 		if mount then
 			return mount
 		elseif IsPlayerSpell(SpellID["Travel Form"]) and (IsOutdoors() or IsSubmerged()) then
-			return "/cast [nomounted,noform] " ..   SpellName["Travel Form"]
+			return "/cast [nomounted,noform] " .. SpellName["Travel Form"]
 		elseif IsPlayerSpell(SpellID["Cat Form"]) then
-			return "/cast [nomounted,noform" ..   BLOCKING_FORMS ..   "] " ..   SpellName["Cat Form"]
+			return "/cast [nomounted,noform" .. BLOCKING_FORMS .. "] " .. SpellName["Cat Form"]
 		end
 	end
 
@@ -331,13 +338,14 @@ if PLAYER_CLASS == "DRUID" then
 elseif PLAYER_CLASS == "SHAMAN" then
 
 	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
+	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
 
 	function GetAction()
 		local mount = SecureCmdOptionParse(MOUNT_CONDITION) and not IsPlayerMoving() and GetMount()
 		if mount then
 			return mount
 		elseif IsPlayerSpell(SpellID["Ghost Wolf"]) then
-			return "/cast [nomounted,noform] " ..   SpellName["Ghost Wolf"]
+			return "/cast [nomounted,noform] " .. SpellName["Ghost Wolf"]
 		end
 	end
 
@@ -373,7 +381,7 @@ else
 
 		local moving = IsPlayerMoving()
 		if classAction and (moving or combat) then
-			return "/cast [nomounted,novehicleui] " ..   classAction
+			return "/cast [nomounted,novehicleui] " .. classAction
 		elseif not moving then
 			local action
 			if SecureCmdOptionParse(REPAIR_MOUNT_CONDITION) then
@@ -384,7 +392,7 @@ else
 			end
 			if classAction and PLAYER_CLASS == "WARLOCK" then
 				-- TODO: why is /cancelform in here???
-				action = "/cancelaura " ..   classAction ..   (action and ("\n/cancelform [form]\n" ..   action) or "")
+				action = "/cancelaura " .. classAction .. (action and ("\n/cancelform [form]\n" .. action) or "")
 			end
 			return action
 		end
