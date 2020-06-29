@@ -202,8 +202,8 @@ do
 					speed = 100
 				elseif mountType == 254 and vashjirMaps[mapID] then -- Subdued Seahorse is faster in Vashj'ir
 					speed = 300
-				elseif mountType == 264 then -- Water Strider, prioritize in water, deprioritize on land
-					speed = IsSwimming() and 101 or 99
+				elseif mountType == 232 and not vashjirMaps[mapID] then -- Abyssal Seahorse only works in Vashj'ir
+					speed = -1
 				end
 				-- print("Checking:", name, mountType, "@", speed, "vs", bestSpeed)
 				if speed > 0 and speed >= bestSpeed then
