@@ -132,10 +132,12 @@ do
 		[600] = true, -- Dread Raven
 		[741] = true, -- Mystic Runesaber
 		[763] = true, -- Illidari Felstalker
+		[773] = true, -- Grove Defiler
 		[779] = true, -- Spirit of Eche'ro
 		[845] = true, -- Mechanized Lumber Extractor
 		[864] = true, -- Ban-Lu, Grandmaster's Companion
 		[868] = true, -- SLayer's Felbroken Shrieker
+		[881] = true, -- Arcanist's Manasaber
 		[885] = true, -- Highlord's Golden Charger
 		[888] = true, -- Fraseer's Raging Tempest
 		[892] = true, -- Highlord's Vengeful Charger
@@ -145,8 +147,16 @@ do
 		[931] = true, -- Netherlord's Accursed Wrathsteed
 		[932] = true, -- Lightforged Warframe
 		[949] = true, -- Luminous Starseeker
+		[954] = true, -- Shackled Ur'zul
+		[956] = true, -- Leaping Veinseeker
 		[983] = true, -- Highlord's Vigilant Charger
+		[1011] = true, -- Shu-Zen, the Divine Sentinel
+		[1061] = true, -- Expedition Bloodswarmer
 		[1216] = true, -- Priestess' Moonsaber
+		[1217] = true, -- G.M.O.D.
+		[1219] = true, -- Glacial Tidestorm
+		[1221] = true, -- Hogrus, Swine of Good Fortune
+		[1222] = true, -- Vulpine Familiar
 	}
 
 	local zoneMounts = { -- special mounts that don't need to be favorites
