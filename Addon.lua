@@ -313,6 +313,10 @@ if PLAYER_CLASS == "DRUID" then
 	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
 
 	function GetAction(force)
+		if SecureCmdOptionParse(REPAIR_MOUNT_CONDITION) then
+			return GetRepairMount()
+		end
+
 		if force or not BLOCKING_FORMS then
 			BLOCKING_FORMS = "" -- in case of force
 			for i = 1, GetNumShapeshiftForms() do
@@ -351,6 +355,9 @@ elseif PLAYER_CLASS == "SHAMAN" then
 	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
 
 	function GetAction()
+		if SecureCmdOptionParse(REPAIR_MOUNT_CONDITION) then
+			return GetRepairMount()
+		end
 		local mount = SecureCmdOptionParse(MOUNT_CONDITION) and not IsPlayerMoving() and GetMount()
 		if mount then
 			return mount
