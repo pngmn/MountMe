@@ -154,7 +154,6 @@ do
 		[1061] = true, -- Expedition Bloodswarmer
 		[1216] = true, -- Priestess' Moonsaber
 		[1217] = true, -- G.M.O.D.
-		[1219] = true, -- Glacial Tidestorm
 		[1221] = true, -- Hogrus, Swine of Good Fortune
 		[1222] = true, -- Vulpine Familiar
 	}
