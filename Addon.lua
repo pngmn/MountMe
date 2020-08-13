@@ -368,16 +368,16 @@ elseif PLAYER_CLASS == "SHAMAN" then
 ------------------------------------------------------------------------
 else
 	local ClassActionIDs = {
-		196555, -- Demon Hunter: Netherwalk (1.5m)
-		195072, -- Demon Hunter: Fel Rush (2x 10s)
-		125883, -- Monk: Zen Flight
-		115008, -- Monk: Chi Torpedo (2x 20s)
-		109132, -- Monk: Roll (2x 20s)
-		190784, -- Paladin: Divine Speed (45s)
-		202273, -- Paladin: Seal of Light
-		  2983, -- Rogue: Sprint (1m)
-		111400, -- Warlock: Burning Rush
-		 68992, -- Worgen: Darkflight (2m)
+		-- 196555, -- Demon Hunter: Netherwalk (1.5m)
+		-- 195072, -- Demon Hunter: Fel Rush (2x 10s)
+		-- 125883, -- Monk: Zen Flight
+		-- 115008, -- Monk: Chi Torpedo (2x 20s)
+		-- 109132, -- Monk: Roll (2x 20s)
+		-- 190784, -- Paladin: Divine Speed (45s)
+		-- 202273, -- Paladin: Seal of Light
+		--   2983, -- Rogue: Sprint (1m)
+		-- 111400, -- Warlock: Burning Rush
+		--  68992, -- Worgen: Darkflight (2m)
 	}
 	local ClassActionBlocked = {
 		[125883] = function(combat) return combat or IsIndoors() end, -- Zen Flight
