@@ -74,12 +74,16 @@ local function GetOverrideMount()
 
 	-- Nagrand garrison mounts: Frostwolf War Wolf, Telaari Talbuk
 	-- Can be summoned in combat
-	if GetZoneAbilitySpellInfo() == SpellID["Garrison Ability"] then
-		local _, _, _, _, _, _, id = GetSpellInfo(SpellName["Garrison Ability"])
-		if (id == 164222 or id == 165803)
-		and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION)
-		and (UnitAffectingCombat("player") or not LibFlyable:IsFlyableArea()) then
-			return "/cast " .. SpellName["Garrison Ability"]
+
+	for _, zoneAbility in ipairs(C_ZoneAbility.GetActiveAbilities()) do
+		if zoneAbility.spellID == SpellID["Garrison Ability"] then
+			local _, _, _, _, _, _, id = GetSpellInfo(SpellName["Garrison Ability"])
+			if (id == 164222 or id == 165803)
+			and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION)
+			and (UnitAffectingCombat("player") or not LibFlyable:IsFlyableArea()) then
+				return "/cast " .. SpellName["Garrison Ability"]
+			end
+			break
 		end
 	end
 end
