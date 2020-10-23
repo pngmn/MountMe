@@ -430,7 +430,7 @@ function button:Update()
 	if InCombatLockdown() then return end
 
 	self:SetAttribute("macrotext", strtrim(strjoin("\n",
-		GetOverrideMount() or GetAction() or "",
+		(not IsModifierKeyDown() and GetOverrideMount()) or GetAction() or "",
 		GetCVarBool("autoDismountFlying") and "" or SAFE_DISMOUNT,
 		DISMOUNT
 	)))
