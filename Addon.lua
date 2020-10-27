@@ -71,7 +71,7 @@ local function GetOverrideMount()
 
 	-- Magic Broom
 	-- Instant but not usable in combat
-	if not combat and GetItemCount(ItemID["Magic Broom"]) > 0 then
+	if ItemName["Magic Broom"] and not combat and GetItemCount(ItemID["Magic Broom"]) > 0 then
 		return "/use " .. ItemName["Magic Broom"]
 	end
 
