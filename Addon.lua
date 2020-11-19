@@ -154,10 +154,10 @@ do
 		[932] = true, -- Lightforged Warframe
 		[949] = true, -- Luminous Starseeker
 		[954] = true, -- Shackled Ur'zul
-		[956] = true, -- Leaping Veinseeker
+		-- [956] = true, -- Leaping Veinseeker
 		[983] = true, -- Highlord's Vigilant Charger
 		[1011] = true, -- Shu-Zen, the Divine Sentinel
-		[1061] = true, -- Expedition Bloodswarmer
+		-- [1061] = true, -- Expedition Bloodswarmer
 		[1216] = true, -- Priestess' Moonsaber
 		[1217] = true, -- G.M.O.D.
 		[1221] = true, -- Hogrus, Swine of Good Fortune
@@ -247,7 +247,6 @@ do
 	function GetMount()
 		local targetType = IsUnderwater() and SWIMMING or LibFlyable:IsFlyableArea() and FLYING or GROUND
 		FillMountList(targetType)
-
 		if #randoms == 0 and targetType == SWIMMING then
 			-- Fall back to non-swimming mounts
 			targetType = LibFlyable:IsFlyableArea() and FLYING or GROUND
