@@ -1,3 +1,6 @@
+### Changed in 9.1.0-1
+- Update TOC
+
 ### Changed in 9.0.5-1
 - First release of this fork
 - Updated for Shadowlands Patch 9.0.5
