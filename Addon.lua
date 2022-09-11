@@ -10,7 +10,8 @@
 ----------------------------------------------------------------------]]
 
 local MOD_TRAVEL_FORM = "ctrl"
-local MOD_DISMOUNT_FLYING = "shift"
+local MOD_DISMOUNT_FLYING = "alt"
+local MOD_REPAIR_MOUNT = "shift"
 
 ------------------------------------------------------------------------
 
@@ -25,8 +26,9 @@ local GetItemCount, GetSpellInfo, GetZoneAbilitySpellInfo, IsOutdoors, IsPlayerM
 local IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
     = IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
 
-local MOUNT_CONDITION = "[nocombat,outdoors,nomounted,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. "]"
-local GARRISON_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. "]"
+local MOUNT_CONDITION = "[nocombat,outdoors,nomounted,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
+local GARRISON_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
+local REPAIR_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",mod:" .. MOD_REPAIR_MOUNT .. "]"
 
 local SAFE_DISMOUNT = "/stopmacro [flying,nomod:" .. MOD_DISMOUNT_FLYING .. "]"
 local DISMOUNT = [[
@@ -166,8 +168,12 @@ do
 		[982] = true, -- Pond Nettle
 		[1208] = true, -- Saltwater Seahorse
 		[1262] = true, -- Inkscale Deepseeker
-		[855] = true, -- Darkwater Skate
-		[1260] = true, -- Crimson Tidestallion
+
+	local repairMounts = {
+		[280] = true, -- Traveler's Tundra Mammoth
+		[284] = true, -- Traveler's Tundra Mammoth
+		[460] = true, -- Grand Expedition Yak
+		[1039] = true, -- Mighty Caravan Brutosaur
 	}
 
 	local vashjirMaps = {
@@ -233,6 +239,24 @@ do
 			return "/use " .. GetSpellInfo(spellID)
 		end
 	end
+
+	function GetRepairMount()
+		local highestID = 0
+		local preferredSpellID
+		for k in pairs(repairMounts) do
+			local _, spellID, _, _, isUsable = GetMountInfoByID(k)
+			if isUsable then
+				if k > highestID then
+					highestID = k
+					preferredSpellID = spellID
+				end
+			end
+		end
+		
+		if preferredSpellID then
+			return "/use " .. GetSpellInfo(preferredSpellID)
+		end
+	end
 end
 
 ------------------------------------------------------------------------
@@ -270,8 +294,7 @@ if PLAYER_CLASS == "DRUID" then
 	local BLOCKING_FORMS
 	local orig_DISMOUNT = DISMOUNT
 
-	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" ..   MOD_TRAVEL_FORM ..   "]"
-	DISMOUNT = DISMOUNT ..   "\n/cancelform [form]"
+	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
 
 	function GetAction(force)
 		if force or not BLOCKING_FORMS then
@@ -286,8 +309,7 @@ if PLAYER_CLASS == "DRUID" then
 					end
 				end
 			end
-			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform" ..   BLOCKING_FORMS ..   ",novehicleui,nomod:" ..   MOD_TRAVEL_FORM ..   "]"
-			DISMOUNT = orig_DISMOUNT ..   "\n/cancelform [form" ..   BLOCKING_FORMS ..   "]"
+			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform" .. BLOCKING_FORMS .. ",novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
 		end
 
 		local mountOK, flightOK = SecureCmdOptionParse(MOUNT_CONDITION), LibFlyable:IsFlyableArea()
@@ -308,8 +330,7 @@ if PLAYER_CLASS == "DRUID" then
 ------------------------------------------------------------------------
 elseif PLAYER_CLASS == "SHAMAN" then
 
-	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" ..   MOD_TRAVEL_FORM ..   "]"
-	DISMOUNT = DISMOUNT ..   "\n/cancelform [form]"
+	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
 
 	function GetAction()
 		local mount = SecureCmdOptionParse(MOUNT_CONDITION) and not IsPlayerMoving() and GetMount()
@@ -355,7 +376,10 @@ else
 			return "/cast [nomounted,novehicleui] " ..   classAction
 		elseif not moving then
 			local action
-			if SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) and not combat then
+			if SecureCmdOptionParse(REPAIR_MOUNT_CONDITION) then
+				action = GetRepairMount()
+			end
+			if SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) then
 				action = GetMount()
 			end
 			if classAction and PLAYER_CLASS == "WARLOCK" then
