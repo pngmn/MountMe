@@ -1,4 +1,4 @@
-## Interface: 90205
+## Interface: 90207
 ## Version: @project-version@
 
 ## Title: MountMe
@@ -7,12 +7,7 @@
 ## Notes-esES: Un botón para montar, desmontar y usar las formas de viaje.
 ## Notes-esMX: Un botón para montar, desmontar y usar las formas de viaje.
 
-## Author: Phanx
-## X-Email: addons@phanx.net
-## X-License: All rights reserved
-## X-Website: https://github.com/phanx-wow/MountMe
-## X-Curse-Project-ID: 86804
-## X-WoWI-ID: 23309
+## Author: Pingumania, Phanx
 
 ## SavedVariables: MountMeSettings
 ## SavedVariablesPerCharacter: MountMeFavorites
