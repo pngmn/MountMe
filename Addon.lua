@@ -336,9 +336,9 @@ else
 		local moving = IsPlayerMoving()
 		if classAction and (moving or combat) then
 			return "/cast [nomounted,novehicleui] " ..   classAction
-		elseif not moving then
+		elseif not (moving and combat) then
 			local action
-			if SecureCmdOptionParse(MOUNT_CONDITION) then
+			if SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) then
 				action = GetMount()
 			end
 			if classAction and PLAYER_CLASS == "WARLOCK" then
