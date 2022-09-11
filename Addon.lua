@@ -74,7 +74,6 @@ local function GetOverrideMount()
 
 	-- Nagrand garrison mounts: Frostwolf War Wolf, Telaari Talbuk
 	-- Can be summoned in combat
-
 	for _, zoneAbility in ipairs(C_ZoneAbility.GetActiveAbilities()) do
 		if zoneAbility.spellID == SpellID["Garrison Ability"] then
 			local _, _, _, _, _, _, id = GetSpellInfo(SpellName["Garrison Ability"])
