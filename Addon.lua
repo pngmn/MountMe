@@ -57,7 +57,10 @@ local ItemID = {
 
 local ItemName = {}
 for name, id in pairs(ItemID) do
-	ItemName[name] = GetItemInfo(id)
+	local item = Item:CreateFromItemID(id)
+	item:ContinueOnItemLoad(function()
+		ItemName[name] = item:GetItemName()
+	end)
 end
 
 ------------------------------------------------------------------------
