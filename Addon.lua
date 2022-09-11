@@ -137,6 +137,7 @@ do
 		[594] = true, -- Grinning Reaver
 		[600] = true, -- Dread Raven
 		[741] = true, -- Mystic Runesaber
+		[751] = true, -- Felsteel Annihilator
 		[763] = true, -- Illidari Felstalker
 		[773] = true, -- Grove Defiler
 		[779] = true, -- Spirit of Eche'ro
@@ -154,10 +155,8 @@ do
 		[932] = true, -- Lightforged Warframe
 		[949] = true, -- Luminous Starseeker
 		[954] = true, -- Shackled Ur'zul
-		-- [956] = true, -- Leaping Veinseeker
 		[983] = true, -- Highlord's Vigilant Charger
 		[1011] = true, -- Shu-Zen, the Divine Sentinel
-		-- [1061] = true, -- Expedition Bloodswarmer
 		[1216] = true, -- Priestess' Moonsaber
 		[1217] = true, -- G.M.O.D.
 		[1221] = true, -- Hogrus, Swine of Good Fortune
@@ -197,11 +196,21 @@ do
 		[1039] = true, -- Mighty Caravan Brutosaur
 	}
 
+	local mawMounts = {
+		[1304] = true, -- Mawsworn Soulhunter
+		[1442] = true, -- Corridor Creeper
+	}
+
 	local vashjirMaps = {
 		[201] = true, -- Kelp'thar Forest
 		[203] = true, -- Vashj'ir
 		[204] = true, -- Abyssal Depths
 		[205] = true, -- Shimmering Expanse
+	}
+
+	local mawMaps = {
+		[1543] = true,
+		[1961] = true,
 	}
 
 	local mountIDs = C_MountJournal.GetMountIDs()
@@ -221,20 +230,21 @@ do
 		for i = 1, #mountIDs do
 			local mountID = mountIDs[i]
 			local name, spellID, _, _, isUsable, _, isFavorite = GetMountInfoByID(mountID)
-			-- The Maw needs special treatment
 			if isUsable and (isFavorite or zoneMounts[mountID]) then
 				local _, _, sourceText, isSelfMount, mountType = GetMountInfoExtraByID(mountID)
 				local speed = mountTypeInfo[mountType][targetType]
-				if speed == 99 and flexMounts[mountID] then
+				if mountType == 232 and not vashjirMaps[mapID] then -- Abyssal Seahorse only works in Vashj'ir
+					speed = -1
+				elseif mawMounts[mountID] then -- The Maw needs special treatment
+					if mawMaps[mapID] and not C_QuestLog.IsQuestFlaggedCompleted(63994) then
+						speed = 101
+					elseif not isFavorite then
+						speed = -1
+					end
+				elseif speed == 99 and flexMounts[mountID] then
 					speed = 100
 				elseif mountType == 254 and vashjirMaps[mapID] then -- Subdued Seahorse is faster in Vashj'ir
 					speed = 300
-				elseif mountType == 232 and not vashjirMaps[mapID] then -- Abyssal Seahorse only works in Vashj'ir
-					speed = -1
-				elseif mapID == 1543 and (mountID ~= 1442 and mountID ~= 1302) then -- The Maw needs special treatment
-					speed = -1
-				elseif mapID ~= 1543 and not isFavorite and (mountID == 1442 or mountID == 1302) then
-					speed = -1
 				end
 				-- print("Checking:", name, mountType, "@", speed, "vs", bestSpeed)
 				if speed > 0 and speed >= bestSpeed then
