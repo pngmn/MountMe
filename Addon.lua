@@ -173,7 +173,6 @@ do
 		[312] = true, -- Sea Turtle
 		[312] = true, -- Sea Turtle
 		[373] = true, -- Vashj'ir Seahorse
-		[373] = true, -- Vashj'ir Seahorse
 		[420] = true, -- Subdued Seahorse
 		[420] = true, -- Subdued Seahorse
 		[678] = true, -- Chauffeured Mechano-Hog
@@ -187,6 +186,8 @@ do
 		[1258] = true, -- Fabious
 		[1260] = true, -- Crimson Tidestallion
 		[1262] = true, -- Inkscale Deepseeker
+		[1304] = true, -- Mawsworn Soulhunter
+		[1442] = true, -- Corridor Creeper
 	}
 
 	local repairMounts = {
@@ -220,6 +221,7 @@ do
 		for i = 1, #mountIDs do
 			local mountID = mountIDs[i]
 			local name, spellID, _, _, isUsable, _, isFavorite = GetMountInfoByID(mountID)
+			-- The Maw needs special treatment
 			if isUsable and (isFavorite or zoneMounts[mountID]) then
 				local _, _, sourceText, isSelfMount, mountType = GetMountInfoExtraByID(mountID)
 				local speed = mountTypeInfo[mountType][targetType]
@@ -228,6 +230,10 @@ do
 				elseif mountType == 254 and vashjirMaps[mapID] then -- Subdued Seahorse is faster in Vashj'ir
 					speed = 300
 				elseif mountType == 232 and not vashjirMaps[mapID] then -- Abyssal Seahorse only works in Vashj'ir
+					speed = -1
+				elseif mapID == 1543 and (mountID ~= 1442 and mountID ~= 1302) then -- The Maw needs special treatment
+					speed = -1
+				elseif mapID ~= 1543 and not isFavorite and (mountID == 1442 or mountID == 1302) then
 					speed = -1
 				end
 				-- print("Checking:", name, mountType, "@", speed, "vs", bestSpeed)
@@ -245,7 +251,9 @@ do
 	end
 
 	function GetMount()
+		local mapID = C_Map.GetBestMapForUnit("player")
 		local targetType = IsUnderwater() and SWIMMING or LibFlyable:IsFlyableArea() and FLYING or GROUND
+		if vashjirMaps[mapID] then targetType = SWIMMING end
 		FillMountList(targetType)
 		if #randoms == 0 and targetType == SWIMMING then
 			-- Fall back to non-swimming mounts
