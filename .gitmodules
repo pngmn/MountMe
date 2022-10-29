@@ -1,0 +1,3 @@
+[submodule "Libs/LibFlyable"]
+	path = Libs/LibFlyable
+	url = https://github.com/Pingumania/LibFlyable.git
