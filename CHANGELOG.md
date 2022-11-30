@@ -1,3 +1,8 @@
+MountMe | 10.0.2-1
+------------------
+- ToC update for 10.0.2
+- Added initial support for Dragonriding
+
 MountMe | 9.2.0-1
 -----------------
 - ToC update for 9.2.0

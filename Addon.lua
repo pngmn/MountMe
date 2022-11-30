@@ -15,13 +15,12 @@ local MOD_REPAIR_MOUNT = "shift"
 
 ------------------------------------------------------------------------
 
-local _, ns = ...
 local _, PLAYER_CLASS = UnitClass("player")
 
 local LibFlyable = LibStub("LibFlyable")
 
-local GetItemCount, GetSpellInfo, GetZoneAbilitySpellInfo, IsOutdoors, IsPlayerMoving
-    = GetItemCount, GetSpellInfo, GetZoneAbilitySpellInfo, IsOutdoors, IsPlayerMoving
+local GetItemCount, GetSpellInfo, IsOutdoors, IsPlayerMoving
+    = GetItemCount, GetSpellInfo, IsOutdoors, IsPlayerMoving
 
 local IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
     = IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
@@ -112,6 +111,7 @@ do
 		[254] = {0,0,60},   -- Subdued Seahorse -- +300% swim speed in Vashj'ir, +60% swim speed elsewhere
 		[269] = {100,0,0},  -- Water Striders
 		[284] = {60,0,0},   -- Chauffeured Chopper
+		[402] = {100,310,0}, -- Dragonriding
 	}
 
 	local flexMounts = { -- flying mounts that look OK on the ground
@@ -170,9 +170,7 @@ do
 		[120] = true, -- Green Qiraji Battle Tank
 		[125] = true, -- Riding Turtle
 		[312] = true, -- Sea Turtle
-		[312] = true, -- Sea Turtle
 		[373] = true, -- Vashj'ir Seahorse
-		[420] = true, -- Subdued Seahorse
 		[420] = true, -- Subdued Seahorse
 		[678] = true, -- Chauffeured Mechano-Hog
 		[679] = true, -- Chauffeured Mekgineer's Chopper
@@ -187,6 +185,10 @@ do
 		[1262] = true, -- Inkscale Deepseeker
 		[1304] = true, -- Mawsworn Soulhunter
 		[1442] = true, -- Corridor Creeper
+		[1591] = true, -- Cliffside Wylderdrake
+		[1563] = true, -- Highland Drake
+		[1589] = true, -- Renewed Proto-Drake
+		[1590] = true, -- Windborne Velocidrake
 	}
 
 	local repairMounts = {
@@ -201,6 +203,13 @@ do
 		[1442] = true, -- Corridor Creeper
 	}
 
+	local dragonridingMounts = {
+		[1591] = true, -- Cliffside Wylderdrake
+		[1563] = true, -- Highland Drake
+		[1589] = true, -- Renewed Proto-Drake
+		[1590] = true, -- Windborne Velocidrake
+	}
+
 	local vashjirMaps = {
 		[201] = true, -- Kelp'thar Forest
 		[203] = true, -- Vashj'ir
@@ -211,6 +220,16 @@ do
 	local mawMaps = {
 		[1543] = true,
 		[1961] = true,
+	}
+
+	local dragonflightMaps = {
+		[1978] = true,
+		[2022] = true,
+		[2023] = true,
+		[2024] = true,
+		[2025] = true,
+		[2112] = true,
+		[2093] = true,
 	}
 
 	local mountIDs = C_MountJournal.GetMountIDs()
@@ -235,6 +254,8 @@ do
 				local speed = mountTypeInfo[mountType][targetType]
 				if mountType == 232 and not vashjirMaps[mapID] then -- Abyssal Seahorse only works in Vashj'ir
 					speed = -1
+				elseif mountType == 402 and dragonflightMaps[mapID] then -- Dragonriding
+					speed = 800
 				elseif mawMounts[mountID] then -- The Maw needs special treatment
 					if mawMaps[mapID] and not C_QuestLog.IsQuestFlaggedCompleted(63994) then
 						speed = 101
@@ -289,7 +310,7 @@ do
 				end
 			end
 		end
-		
+
 		if preferredSpellID then
 			return "/use " .. GetSpellInfo(preferredSpellID)
 		end
