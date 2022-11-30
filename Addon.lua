@@ -441,6 +441,7 @@ end
 ------------------------------------------------------------------------
 
 local button = CreateFrame("Button", "MountMeButton", nil, "SecureActionButtonTemplate")
+button:RegisterForClicks("AnyDown")
 button:SetAttribute("type", "macro")
 
 function button:Update()
