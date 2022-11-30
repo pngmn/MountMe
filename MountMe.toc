@@ -1,4 +1,4 @@
-## Interface: 90207
+## Interface: 100002
 ## Version: @project-version@
 
 ## Title: MountMe
@@ -13,7 +13,10 @@
 ## SavedVariablesPerCharacter: MountMeFavorites
 
 ## OptionalDeps: LibFlyable
-Libs/LibStub/LibStub.lua
+
+#@non-debug@
+# Libs/LibStub/LibStub.lua
+#@end-non-debug@
 Libs/LibFlyable/LibFlyable.lua
 
 Addon.lua
