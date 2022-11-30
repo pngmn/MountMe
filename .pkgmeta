@@ -7,4 +7,4 @@ ignore:
 
 externals:
   Libs/LibStub: https://repos.curseforge.com/wow/libstub/trunk
-  Libs/LibFlyable: git://github.com/pngmn/LibFlyable.git
+  Libs/LibFlyable: https://github.com/Pingumania/LibFlyable.git
