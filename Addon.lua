@@ -385,9 +385,9 @@ if PLAYER_CLASS == "DRUID" then
 		if mount then
 			return mount
 		elseif IsPlayerSpell(SpellID["Travel Form"]) and (IsOutdoors() or IsSubmerged()) then
-			return "/cast [nomounted,noform] " .. SpellName["Travel Form"]
+			return "/cast [nomounted] " .. SpellName["Travel Form"]
 		elseif IsPlayerSpell(SpellID["Cat Form"]) then
-			return "/cast [nomounted,noform" .. BLOCKING_FORMS .. "] " .. SpellName["Cat Form"]
+			return "/cast [nomounted" .. BLOCKING_FORMS .. "] " .. SpellName["Cat Form"]
 		end
 	end
 
