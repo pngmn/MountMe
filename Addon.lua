@@ -111,7 +111,7 @@ do
 		[254] = {0,0,60},   -- Subdued Seahorse -- +300% swim speed in Vashj'ir, +60% swim speed elsewhere
 		[269] = {100,0,0},  -- Water Striders
 		[284] = {60,0,0},   -- Chauffeured Chopper
-		[402] = {100,310,0}, -- Dragonriding
+		[402] = {0,0,0}, -- Dragonriding
 	}
 
 	local flexMounts = { -- flying mounts that look OK on the ground
@@ -230,6 +230,7 @@ do
 		[2025] = true,
 		[2112] = true,
 		[2093] = true,
+		[2085] = true,
 	}
 
 	local mountIDs = C_MountJournal.GetMountIDs()
@@ -250,12 +251,16 @@ do
 			local mountID = mountIDs[i]
 			local name, spellID, _, _, isUsable, _, isFavorite = GetMountInfoByID(mountID)
 			if isUsable and (isFavorite or zoneMounts[mountID]) then
-				local _, _, sourceText, isSelfMount, mountType = GetMountInfoExtraByID(mountID)
+				local _, _, _, _, mountType = GetMountInfoExtraByID(mountID)
 				local speed = mountTypeInfo[mountType][targetType]
 				if mountType == 232 and not vashjirMaps[mapID] then -- Abyssal Seahorse only works in Vashj'ir
 					speed = -1
 				elseif mountType == 402 and dragonflightMaps[mapID] then -- Dragonriding
-					speed = 800
+					if isFavorite then
+						speed = 831
+					else
+						speed = 830
+					end
 				elseif mawMounts[mountID] then -- The Maw needs special treatment
 					if mawMaps[mapID] and not C_QuestLog.IsQuestFlaggedCompleted(63994) then
 						speed = 101
