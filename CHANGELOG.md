@@ -1,3 +1,8 @@
+MountMe | 10.0.7-1
+------------------
+- ToC update for 10.0.7
+- Fix dragonriding support
+
 MountMe | 10.0.5-1
 ------------------
 - ToC update for 10.0.5

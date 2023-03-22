@@ -203,13 +203,6 @@ do
 		[1442] = true, -- Corridor Creeper
 	}
 
-	local dragonridingMounts = {
-		[1591] = true, -- Cliffside Wylderdrake
-		[1563] = true, -- Highland Drake
-		[1589] = true, -- Renewed Proto-Drake
-		[1590] = true, -- Windborne Velocidrake
-	}
-
 	local vashjirMaps = {
 		[201] = true, -- Kelp'thar Forest
 		[203] = true, -- Vashj'ir
@@ -247,6 +240,7 @@ do
 
 		local bestSpeed = 0
 		local mapID = C_Map.GetBestMapForUnit("player")
+		local advancedFlyable = IsAdvancedFlyableArea()
 		for i = 1, #mountIDs do
 			local mountID = mountIDs[i]
 			local name, spellID, _, _, isUsable, _, isFavorite = GetMountInfoByID(mountID)
@@ -255,7 +249,7 @@ do
 				local speed = mountTypeInfo[mountType][targetType]
 				if mountType == 232 and not vashjirMaps[mapID] then -- Abyssal Seahorse only works in Vashj'ir
 					speed = -1
-				elseif mountType == 402 and dragonflightMaps[mapID] then -- Dragonriding
+				elseif mountType == 402 and advancedFlyable then -- Dragonriding
 					if isFavorite then
 						speed = 831
 					else
