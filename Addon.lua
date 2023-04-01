@@ -95,23 +95,23 @@ end
 local GetMount
 
 do
-	local GROUND, FLYING, SWIMMING = 1, 2, 3
+	local GROUND, ADVFLYING, FLYING, SWIMMING = 1, 2, 3, 4
 
 	local GetMountInfoByID = C_MountJournal.GetMountInfoByID
 	local GetMountInfoExtraByID = C_MountJournal.GetMountInfoExtraByID
 	-- local GetAppliedMountEquipmentID = C_MountJournal.GetAppliedMountEquipmentID()
 
 	local mountTypeInfo = {
-		[230] = {100,99,0}, -- ground -- 99 flying to use in flying areas if the player doesn't have any flying mounts as favorites
-		[231] = {20,0,60},  -- aquatic
-		[232] = {0,0,450},  -- Abyssal Seahorse -- only in Vashj'ir
-		[241] = {101,0,0},  -- Qiraji Battle Tanks -- only in Temple of Ahn'Qiraj
-		[247] = {99,310,0}, -- Red Flying Cloud
-		[248] = {99,310,0}, -- flying -- 99 ground to deprioritize in non-flying zones if any non-flying mounts are favorites
-		[254] = {0,0,60},   -- Subdued Seahorse -- +300% swim speed in Vashj'ir, +60% swim speed elsewhere
-		[269] = {100,0,0},  -- Water Striders
-		[284] = {60,0,0},   -- Chauffeured Chopper
-		[402] = {0,0,0}, -- Dragonriding
+		[230] = {100,0,99,0}, -- ground -- 99 flying to use in flying areas if the player doesn't have any flying mounts as favorites
+		[231] = {20,0,0,60},  -- aquatic
+		[232] = {0,0,0,450},  -- Abyssal Seahorse -- only in Vashj'ir
+		[241] = {101,0,0,0},  -- Qiraji Battle Tanks -- only in Temple of Ahn'Qiraj
+		[247] = {99,0,310,0}, -- Red Flying Cloud
+		[248] = {99,0,310,0}, -- flying -- 99 ground to deprioritize in non-flying zones if any non-flying mounts are favorites
+		[254] = {0,0,0,60},   -- Subdued Seahorse -- +300% swim speed in Vashj'ir, +60% swim speed elsewhere
+		[269] = {100,0,0,0},  -- Water Striders
+		[284] = {60,0,0,0},   -- Chauffeured Chopper
+		[402] = {100,830,0,0}, -- Dragonriding
 	}
 
 	local flexMounts = { -- flying mounts that look OK on the ground
@@ -185,11 +185,12 @@ do
 		[1262] = true, -- Inkscale Deepseeker
 		[1304] = true, -- Mawsworn Soulhunter
 		[1442] = true, -- Corridor Creeper
-		[1591] = true, -- Cliffside Wylderdrake
-		[1563] = true, -- Highland Drake
-		[1589] = true, -- Renewed Proto-Drake
-		[1590] = true, -- Windborne Velocidrake
 	}
+
+	local dragonridingMounts = C_MountJournal.GetCollectedDragonridingMounts()
+	for _, value in pairs(dragonridingMounts) do
+		zoneMounts[value] = true
+	end
 
 	local repairMounts = {
 		[280] = true, -- Traveler's Tundra Mammoth
@@ -215,17 +216,6 @@ do
 		[1961] = true,
 	}
 
-	local dragonflightMaps = {
-		[1978] = true,
-		[2022] = true,
-		[2023] = true,
-		[2024] = true,
-		[2025] = true,
-		[2112] = true,
-		[2093] = true,
-		[2085] = true,
-	}
-
 	local mountIDs = C_MountJournal.GetMountIDs()
 	local randoms = {}
 
@@ -240,7 +230,7 @@ do
 
 		local bestSpeed = 0
 		local mapID = C_Map.GetBestMapForUnit("player")
-		local advancedFlyable = IsAdvancedFlyableArea()
+		local mawRiding = C_QuestLog.IsQuestFlaggedCompleted(63994)
 		for i = 1, #mountIDs do
 			local mountID = mountIDs[i]
 			local name, spellID, _, _, isUsable, _, isFavorite = GetMountInfoByID(mountID)
@@ -249,14 +239,10 @@ do
 				local speed = mountTypeInfo[mountType][targetType]
 				if mountType == 232 and not vashjirMaps[mapID] then -- Abyssal Seahorse only works in Vashj'ir
 					speed = -1
-				elseif mountType == 402 and advancedFlyable then -- Dragonriding
-					if isFavorite then
-						speed = 831
-					else
-						speed = 830
-					end
+				elseif mountType == 402 and not isFavorite then -- Dragonriding
+					speed = speed - 1
 				elseif mawMounts[mountID] then -- The Maw needs special treatment
-					if mawMaps[mapID] and not C_QuestLog.IsQuestFlaggedCompleted(63994) then
+					if mawMaps[mapID] and not mawRiding then
 						speed = 101
 					elseif not isFavorite then
 						speed = -1
@@ -282,7 +268,8 @@ do
 
 	function GetMount()
 		local mapID = C_Map.GetBestMapForUnit("player")
-		local targetType = IsUnderwater() and SWIMMING or LibFlyable:IsFlyableArea() and FLYING or GROUND
+		local advancedFlyable = IsAdvancedFlyableArea()
+		local targetType = IsUnderwater() and SWIMMING or advancedFlyable and ADVFLYING or LibFlyable:IsFlyableArea() and FLYING or GROUND
 		if vashjirMaps[mapID] then targetType = SWIMMING end
 		FillMountList(targetType)
 		if #randoms == 0 and targetType == SWIMMING then
