@@ -1,3 +1,7 @@
+MountMe | 10.0.7-2
+------------------
+- Fix underwater mounts in Dragonflight zones
+
 MountMe | 10.0.7-1
 ------------------
 - ToC update for 10.0.7
