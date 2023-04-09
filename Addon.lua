@@ -111,7 +111,7 @@ do
 		[254] = {0,0,0,60},   -- Subdued Seahorse -- +300% swim speed in Vashj'ir, +60% swim speed elsewhere
 		[269] = {100,0,0,0},  -- Water Striders
 		[284] = {60,0,0,0},   -- Chauffeured Chopper
-		[402] = {100,830,0,0}, -- Dragonriding
+		[402] = {0,830,0,0}, -- Dragonriding
 	}
 
 	local flexMounts = { -- flying mounts that look OK on the ground
@@ -262,7 +262,7 @@ do
 				elseif mountType == 254 and vashjirMaps[mapID] then -- Subdued Seahorse is faster in Vashj'ir
 					speed = 300
 				end
-				-- print("Checking:", name, mountType, "@", speed, "vs", bestSpeed)
+				-- print("Checking:", targetType, name, mountType, "@", speed, "vs", bestSpeed)
 				if speed > 0 and speed >= bestSpeed then
 					if speed > bestSpeed then
 						bestSpeed = speed
