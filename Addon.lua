@@ -161,6 +161,16 @@ do
 		[1217] = true, -- G.M.O.D.
 		[1221] = true, -- Hogrus, Swine of Good Fortune
 		[1222] = true, -- Vulpine Familiar
+		[1291] = true, -- Lucky Yun
+		[1306] = true, -- Swift Gloomhoof
+		[1307] = true, -- Sundancer
+		[1330] = true, -- Sunwarmed Furline
+		[1360] = true, -- Shimmermist Runner
+		[1413] = true, -- Dauntless Duskrunner
+		[1426] = true, -- Ascended Skymane
+		[1511] = true, -- Maelie, the Wanderer
+		[1577] = true, -- Ash'adar, Harbinger of Dawn
+		[1580] = true, -- Heartbond Lupine
 	}
 
 	local zoneMounts = { -- special mounts that don't need to be favorites
