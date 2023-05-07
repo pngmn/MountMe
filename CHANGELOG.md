@@ -1,3 +1,9 @@
+MountMe | 10.1.0-1
+------------------
+- ToC update for 10.1.0
+- Added more flex mounts
+- Fix dragondriding mounts for old content
+
 MountMe | 10.0.7-2
 ------------------
 - Fix underwater mounts in Dragonflight zones
