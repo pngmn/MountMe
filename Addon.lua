@@ -111,7 +111,11 @@ do
 		[254] = {0,0,0,60},   -- Subdued Seahorse -- +300% swim speed in Vashj'ir, +60% swim speed elsewhere
 		[269] = {100,0,0,0},  -- Water Striders
 		[284] = {60,0,0,0},   -- Chauffeured Chopper
-		[402] = {0,830,0,0}, -- Dragonriding
+		[398] = {100,0,99,0}, -- Kua'fon's Harness
+		[402] = {0,830,0,0},  -- Dragonriding
+		[407] = {99,0,310,60}, -- Deepstar Polyp
+		[408] = {100,0,99,0}, -- Unsuccessful Prototype Fleetpod
+		[412] = {100,0,99,0}, -- Ottuks
 	}
 
 	local flexMounts = { -- flying mounts that look OK on the ground
