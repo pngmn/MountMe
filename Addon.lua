@@ -411,50 +411,15 @@ elseif PLAYER_CLASS == "SHAMAN" then
 
 ------------------------------------------------------------------------
 else
-	local ClassActionIDs = {
-		-- 196555, -- Demon Hunter: Netherwalk (1.5m)
-		-- 195072, -- Demon Hunter: Fel Rush (2x 10s)
-		-- 125883, -- Monk: Zen Flight
-		-- 115008, -- Monk: Chi Torpedo (2x 20s)
-		-- 109132, -- Monk: Roll (2x 20s)
-		-- 190784, -- Paladin: Divine Speed (45s)
-		-- 202273, -- Paladin: Seal of Light
-		--   2983, -- Rogue: Sprint (1m)
-		-- 111400, -- Warlock: Burning Rush
-		--  68992, -- Worgen: Darkflight (2m)
-	}
-	local ClassActionBlocked = {
-		[125883] = function(combat) return combat or IsIndoors() end, -- Zen Flight
-	}
-
 	function GetAction()
-		local combat = UnitAffectingCombat("player")
-
-		local classAction
-		for i = 1, #ClassActionIDs do
-			local id = ClassActionIDs[i]
-			if IsPlayerSpell(id) and not (ClassActionBlocked[id] and ClassActionBlocked[id](combat)) then
-				classAction = GetSpellInfo(id)
-				break
-			end
-		end
-
-		local moving = IsPlayerMoving()
-		if classAction and (moving or combat) then
-			return "/cast [nomounted,novehicleui] " .. classAction
-		elseif not moving then
-			local action
+		if not IsPlayerMoving() then
 			if SecureCmdOptionParse(REPAIR_MOUNT_CONDITION) then
-				action = GetRepairMount()
+				return GetRepairMount()
+			elseif SecureCmdOptionParse(MOUNT_CONDITION) then
+				return GetMount()
+			else
+				return
 			end
-			if SecureCmdOptionParse(GARRISON_MOUNT_CONDITION) then
-				action = GetMount()
-			end
-			if classAction and PLAYER_CLASS == "WARLOCK" then
-				-- TODO: why is /cancelform in here???
-				action = "/cancelaura " .. classAction .. (action and ("\n/cancelform [form]\n" .. action) or "")
-			end
-			return action
 		end
 	end
 end
@@ -480,10 +445,8 @@ button:SetScript("PreClick", button.Update)
 ------------------------------------------------------------------------
 
 button:RegisterEvent("PLAYER_LOGIN")
-
 button:RegisterEvent("PLAYER_ENTERING_WORLD")
 button:RegisterEvent("UPDATE_BINDINGS")
-
 button:RegisterEvent("LEARNED_SPELL_IN_TAB")
 button:RegisterEvent("PLAYER_REGEN_DISABLED")
 button:RegisterEvent("PLAYER_REGEN_ENABLED")
