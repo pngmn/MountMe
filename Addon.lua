@@ -9,7 +9,7 @@
 	- Ignore garrison stables training mounts
 ----------------------------------------------------------------------]]
 
-local MOD_TRAVEL_FORM = "ctrl"
+local MOD_FORCE_FLYING = "ctrl"
 local MOD_DISMOUNT_FLYING = "alt"
 local MOD_REPAIR_MOUNT = "shift"
 
@@ -25,9 +25,11 @@ local GetItemCount, GetSpellInfo, IsOutdoors, IsPlayerMoving
 local IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
     = IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
 
-local MOUNT_CONDITION = "[nocombat,outdoors,nomounted,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
-local GARRISON_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
-local REPAIR_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",mod:" .. MOD_REPAIR_MOUNT .. "]"
+local MOUNT_CONDITION = "[nocombat,outdoors,nomounted,novehicleui,nomod:" .. MOD_REPAIR_MOUNT .. "]"
+local FORCE_FLYING_MOUNT_CONDITION = "[nocombat,outdoors,nomounted,novehicleui,mod:" .. MOD_FORCE_FLYING .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
+local COMBAT_MOUNT_CONDITION = "[combat,outdoors,nomounted,novehicleui]"
+local GARRISON_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:" .. MOD_REPAIR_MOUNT .. "]"
+local REPAIR_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:" .. MOD_FORCE_FLYING .. ",mod:" .. MOD_REPAIR_MOUNT .. "]"
 
 local SAFE_DISMOUNT = "/stopmacro [flying,nomod:" .. MOD_DISMOUNT_FLYING .. "]"
 local DISMOUNT = [[
@@ -280,9 +282,9 @@ do
 		return randoms
 	end
 
-	function GetMount()
+	function GetMount(forceFlying)
 		local mapID = C_Map.GetBestMapForUnit("player")
-		local advancedFlyable = IsAdvancedFlyableArea()
+		local advancedFlyable = IsAdvancedFlyableArea() and not forceFlying
 		local targetType = IsUnderwater() and SWIMMING or advancedFlyable and ADVFLYING or LibFlyable:IsFlyableArea() and FLYING or GROUND
 		if vashjirMaps[mapID] then targetType = SWIMMING end
 		FillMountList(targetType)
@@ -352,7 +354,7 @@ if PLAYER_CLASS == "DRUID" then
 	local BLOCKING_FORMS
 	local orig_DISMOUNT = DISMOUNT
 
-	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
+	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_FORCE_FLYING .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
 	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
 
 	function GetAction(force)
@@ -372,7 +374,7 @@ if PLAYER_CLASS == "DRUID" then
 					end
 				end
 			end
-			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform" .. BLOCKING_FORMS .. ",novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
+			MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform" .. BLOCKING_FORMS .. ",novehicleui,nomod:" .. MOD_FORCE_FLYING .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
 			DISMOUNT = orig_DISMOUNT .. "\n/cancelform [form" .. BLOCKING_FORMS .. "]"
 		end
 
@@ -400,10 +402,10 @@ else
 			if SecureCmdOptionParse(REPAIR_MOUNT_CONDITION) then
 				action = GetRepairMount()
 			elseif SecureCmdOptionParse(MOUNT_CONDITION) then
-				action = GetMount()
+				action = GetMount(SecureCmdOptionParse(FORCE_FLYING_MOUNT_CONDITION))
 			end
 		elseif combat then
-			if SecureCmdOptionParse(MOUNT_CONDITION) then
+			if SecureCmdOptionParse(COMBAT_MOUNT_CONDITION) then
 				action = GetMount()
 			end
 		end
