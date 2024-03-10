@@ -81,7 +81,7 @@ local function GetOverrideMount()
 			local _, _, _, _, _, _, id = GetSpellInfo(SpellName["Garrison Ability"])
 			if (id == 164222 or id == 165803)
 			and SecureCmdOptionParse(GARRISON_MOUNT_CONDITION)
-			and (UnitAffectingCombat("player") or not LibFlyable:IsFlyableArea()) then
+			and (combat or not LibFlyable:IsFlyableArea()) then
 				return "/cast " .. SpellName["Garrison Ability"]
 			end
 			break
@@ -294,7 +294,7 @@ do
 
 		if #randoms > 0 then
 			local spellID = randoms[random(#randoms)]
-			return "/use " .. GetSpellInfo(spellID)
+			return "/cast " .. GetSpellInfo(spellID)
 		end
 	end
 
@@ -392,15 +392,23 @@ if PLAYER_CLASS == "DRUID" then
 	end
 else
 	function GetAction()
-		if not IsPlayerMoving() then
+		local action
+		local moving = IsPlayerMoving() -- Not available in combat
+		local combat = UnitAffectingCombat("player")
+
+		if not (moving and combat) then
 			if SecureCmdOptionParse(REPAIR_MOUNT_CONDITION) then
-				return GetRepairMount()
+				action = GetRepairMount()
 			elseif SecureCmdOptionParse(MOUNT_CONDITION) then
-				return GetMount()
-			else
-				return
+				action = GetMount()
+			end
+		elseif combat then
+			if SecureCmdOptionParse(MOUNT_CONDITION) then
+				action = GetMount()
 			end
 		end
+
+		return action
 	end
 end
 
