@@ -390,26 +390,6 @@ if PLAYER_CLASS == "DRUID" then
 			return "/cast [nomounted" .. BLOCKING_FORMS .. "] " .. SpellName["Cat Form"]
 		end
 	end
-
-------------------------------------------------------------------------
-elseif PLAYER_CLASS == "SHAMAN" then
-
-	MOUNT_CONDITION = "[outdoors,nocombat,nomounted,noform,novehicleui,nomod:" .. MOD_TRAVEL_FORM .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
-	DISMOUNT = DISMOUNT .. "\n/cancelform [form]"
-
-	function GetAction()
-		if SecureCmdOptionParse(REPAIR_MOUNT_CONDITION) then
-			return GetRepairMount()
-		end
-		local mount = SecureCmdOptionParse(MOUNT_CONDITION) and not IsPlayerMoving() and GetMount()
-		if mount then
-			return mount
-		elseif IsPlayerSpell(SpellID["Ghost Wolf"]) then
-			return "/cast [nomounted,noform] " .. SpellName["Ghost Wolf"]
-		end
-	end
-
-------------------------------------------------------------------------
 else
 	function GetAction()
 		if not IsPlayerMoving() then
