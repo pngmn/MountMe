@@ -25,9 +25,10 @@ local GetItemCount, GetSpellInfo, IsOutdoors, IsPlayerMoving
 local IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
     = IsPlayerSpell, IsSpellKnown, IsSubmerged, SecureCmdOptionParse
 
-local MOUNT_CONDITION = "[nocombat,outdoors,nomounted,novehicleui,nomod:" .. MOD_REPAIR_MOUNT .. "]"
-local FORCE_FLYING_MOUNT_CONDITION = "[nocombat,outdoors,nomounted,novehicleui,mod:" .. MOD_FORCE_FLYING .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
-local COMBAT_MOUNT_CONDITION = "[combat,outdoors,nomounted,novehicleui]"
+-- Don't use combat macro conditional because it also considers pets and this sometimes prevents us from mounting even if we are not in combat
+local MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:" .. MOD_REPAIR_MOUNT .. "]"
+local FORCE_FLYING_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,mod:" .. MOD_FORCE_FLYING .. ",nomod:" .. MOD_REPAIR_MOUNT .. "]"
+local COMBAT_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui]"
 local GARRISON_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:" .. MOD_REPAIR_MOUNT .. "]"
 local REPAIR_MOUNT_CONDITION = "[outdoors,nomounted,novehicleui,nomod:" .. MOD_FORCE_FLYING .. ",mod:" .. MOD_REPAIR_MOUNT .. "]"
 
