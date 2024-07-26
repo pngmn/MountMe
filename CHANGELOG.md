@@ -1,3 +1,7 @@
+MountMe | 11.0.0-1
+------------------
+- Update for patch 11.0.0
+
 MountMe | 10.1.0-1
 ------------------
 - ToC update for 10.1.0

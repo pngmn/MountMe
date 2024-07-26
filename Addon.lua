@@ -119,6 +119,9 @@ do
 		[407] = {99,0,310,60}, -- Deepstar Polyp
 		[408] = {100,0,99,0}, -- Unsuccessful Prototype Fleetpod
 		[412] = {100,0,99,0}, -- Ottuks
+		[424] = {100,830,0,0}, -- Dragonriding
+		[436] = {100,830,0,0}, -- Dragonriding
+		[437] = {100,830,0,0}, -- Dragonriding
 	}
 
 	local flexMounts = { -- flying mounts that look OK on the ground
